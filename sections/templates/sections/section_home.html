@@ -1,0 +1,38 @@
+{% extends 'users/base.html' %}
+{% block content %}
+  <h2>Section List</h2>
+  <form method="post" action="{% url 'section-create' %}">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-primary">Create</button>
+  </form>
+  
+  {% if sections %}
+  <table class="table table-striped table-hover">
+    <thead>
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col">Role</th>
+        <th scope="col">School Year</th>
+        <th scope="col">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for section in sections %}
+              <tr>
+                  <td>{{ section.name }}</td>
+                  <td>{{ section.get_role_display }}</td>
+                  <td>{{ section.school_year }}</td>
+                  <td>
+                    <a href="{% url 'section-detail' section.id %}" class="btn btn-info">View Details</a>
+                    <a href="{% url 'section-delete' section.id %}" class="btn btn-danger">Delete Section</a>
+                  </td>
+              </tr>
+          {% endfor %}
+    </tbody>
+  </table>
+  {%else %}
+  <div class="alert alert-info mt-3" role="alert">
+      There is no section available at the moment.
+  </div>
+  {% endif %}
+{% endblock %}
