@@ -1,0 +1,57 @@
+{% extends 'users/base.html' %}  
+{% block content %}
+  {% if object.added_by == user %}
+    <!-- <a type="submit" class="btn btn-primary" href="{% url 'section-update' object.id %}">Update</a>
+    <a type="submit" class="btn btn-danger" href="{% url 'section-delete' object.id %}">Delete</a> -->
+    
+    <div class="card mt-3">
+    <h5 class="card-header">{{ object.complete_name }}</h5>
+    <div class="container-sm mt-3">
+        <a type="submit" class="btn btn-primary" href="{% url 'student-update' object.id %}">Update</a>
+        <a type="submit" class="btn btn-danger" href="{% url 'student-delete' object.id %}">Delete</a>
+    </div>
+    <div class="card-body">
+        <table class="table table-striped">
+            <tbody>
+                <tr>
+                    <th><b>Personal Information</b></th>
+                    <td><b>Description</b></td>
+                </tr>
+                <tr>
+                    <th>LRN</th>
+                    <td>{{ object.lrn }}</td>
+                </tr>
+                <tr>
+                    <th>First Name</th>
+                    <td>{{ object.first_name }}</td>
+                </tr>
+                <tr>
+                    <th>Middle Name</th>
+                    <td>{{ object.middle_name }}</td>
+                </tr>
+                <tr>
+                    <th>Last Name</th>
+                    <td>{{ object.last_name }}</td>
+                </tr>
+                <tr>
+                    <th>Gender</th>
+                    <td>{{ object.get_gender_display }}</td>
+                </tr>
+                <tr>
+                    <th>Birthday</th>
+                    <td>{{ object.date_of_birth }}</td>
+                </tr>
+                <tr>
+                    <th>Age</th>
+                    <td>{{ object.age }}</td>
+                </tr>
+                <tr>
+                    <th>Birth Certificate Document Status</th>
+                    <td>{{ object.get_birth_cert_display }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    </div>
+{% endif %}
+{% endblock %}

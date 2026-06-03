@@ -7,10 +7,6 @@ from .models import Profile
 def create_profile(sender, instance, created, **kwargs):
     if created:
         Profile.objects.create(user=instance)
+    else:
+        instance.profile.save()
 
-@receiver(post_save, sender=User, dispatch_uid='save_new_user_profile')
-def save_profile(sender, instance, created, **kwargs):
-    user = instance
-    if created:
-        profile = Profile(user=user)
-        profile.save()

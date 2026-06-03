@@ -30,6 +30,7 @@ urlpatterns = [
     path('school_year/', include('schoolYear.urls')),
     path('', user_views.index, name="home"),
     path('section/', include('sections.urls')),
+    path('student/', include('students.urls')),
     
 ]
 

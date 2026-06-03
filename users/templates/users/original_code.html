@@ -1,0 +1,95 @@
+<div class="container">
+            {% if user.is_authenticated %}  
+            <div class="sidebar-nav" style="position:relative;">
+                <!-- <div class="sidebar-nav collapse" id="mySidebar" style="position: relative;z-index: 1050;"></div> -->
+            <div class="sidebar sidebar-narrow-unfoldable border-end" style="background-color: #B9FF66; color: white;">
+                
+                <div class="sidebar-header custom-bg">
+                    
+                </div>
+                <div>
+                <ul class="sidebar-nav custom-bg">
+                    <li class="nav-title">MY DASHBOARD</li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'section-home' %}">
+                            <i class="nav-icon cil-speedometer"></i>Sections
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'student-home' %}">
+                            <i class="nav-icon cil-speedometer"></i>Student List
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <i class="nav-icon cil-speedometer"></i> With badge
+                        <span class="badge bg-primary ms-auto">NEW</span>
+                    </a>
+                    </li>
+                    <li class="nav-item nav-group show">
+                        <a class="nav-link nav-group-toggle" href="#">
+                            <i class="nav-icon cil-puzzle"></i> Items group
+                        </a>
+                    <ul class="nav-group-items">
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <span class="nav-icon"><span class="nav-icon-bullet"></span></span> Items group item
+                            </a>
+                            </li>
+                            <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <span class="nav-icon"><span class="nav-icon-bullet"></span></span> Items group item
+                            </a>
+                            </li>
+                        </ul>
+                        </li>
+                </ul>
+                </div>
+                <div class="sidebar-footer custom-bg">
+                    <div class="dropdown dropend w-100">
+                        <button class="btn btn-ghost w-100 d-flex gap-2 p-1 align-items-center" type="button" data-coreui-toggle="dropdown" aria-expanded="false">
+                        <div class="avatar avatar-md">
+                            <img class="avatar-img rounded" src="{{ user.profile.image.url }}" alt="{{ user.email }}">
+                        </div>
+                        <div class="small text-start d-sidebar-narrow-none">
+                            <div class="fw-semibold">{{ user.first_name }}&nbsp;{{ user.last_name }}</div>
+                            <div>{{ user.email }}</div>
+                        </div>
+                        <i class="nav-icon cil-options ms-auto d-sidebar-narrow-none"></i>
+                        </button>
+                        <ul class="dropdown-menu w-100 custom-bg">
+                            <div class="d-flex gap-2 px-2">
+                                <div class="avatar avatar-md">
+                                    <img class="avatar-img rounded" src="{{ user.profile.image.url }}" alt="{{ user.email }}">
+                                </div>
+                                <div class="small text-start">
+                                    <div class="fw-semibold">{{ user.first_name }}&nbsp;{{ user.last_name }}</div>
+                                    <div>{{ user.email }}</div>
+                                </div>
+                            </div>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item d-flex align-items-center gap-2" href="{% url 'profile' %}"><i class="cil-settings"></i>Profile</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><i class="cil-account-logout"></i>
+                                <form method="post" action="{% url 'logout' %}">
+                                    {% csrf_token %}
+                                    <button class="btn btn-primary" type="submit">Log out</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            </div>
+            {% endif %}
+                <div class="" id="messages">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            {% block content %}{% endblock %}
+        </div> 

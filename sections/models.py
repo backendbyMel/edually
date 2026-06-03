@@ -3,18 +3,15 @@ from django.contrib.auth.models import User
 from schoolYear.models import schoolYear
 from django.urls import reverse
 
-teacherAssignment = {
-    "advisory": "Adviser",
-    "subjectTeacher": "Subject Teacher"
-}
-
 # Create your models here.
 class Section(models.Model):
     adviser = models.ForeignKey(User, on_delete=models.CASCADE)
-    principal_name = models.CharField(max_length=100, null=True)
-    school_year = models.ForeignKey(schoolYear,on_delete=models.CASCADE, limit_choices_to= {'is_active':True}, default='S.Y. 2026-2027')
     name = models.CharField(max_length=20, null=True)
-    role = models.CharField(max_length=50, choices=teacherAssignment, default='subjectTeacher')
+    grade_level = models.IntegerField(null=True)
+    is_adviser = models.BooleanField(default=True) 
+    is_subject_teacher = models.BooleanField(default=False)
+    principal_name = models.CharField(max_length=100, null=True)
+    school_year = models.ForeignKey(schoolYear,on_delete=models.CASCADE, limit_choices_to= {'is_active':True}, default='S.Y. 2026-2027') 
     
 
     def __str__(self):

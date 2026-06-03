@@ -25,7 +25,7 @@ class SectionDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
 
 class SectionCreateView(LoginRequiredMixin, CreateView):
     model = Section
-    fields = ['name','role','principal_name','school_year']
+    fields = ['name','grade_level','is_adviser','is_subject_teacher','principal_name','school_year']
     template_name = 'sections/section_create.html'
     success_url = reverse_lazy('section-home') 
     
@@ -35,7 +35,7 @@ class SectionCreateView(LoginRequiredMixin, CreateView):
 
 class SectionUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Section
-    fields = ['name','role','principal_name','school_year']
+    fields = ['name','grade_level','is_adviser','is_subject_teacher','principal_name','school_year']
     template_name = 'sections/section_update.html'
     
     def get_success_url(self):
