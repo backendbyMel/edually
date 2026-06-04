@@ -1,0 +1,59 @@
+{% extends 'users/base.html' %}
+{% block content %}
+
+<div class="card mt-3">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span>Search Results</span>
+    <a href="javascript:history.back()" class="btn btn-secondary btn-sm">← Back</a>
+  </div>
+
+  <div class="card-body">
+    <!-- Search bar so they can search again without going back -->
+    <form action="{% url 'search-student' section.pk %}" method="GET">
+      <div class="input-group mb-3 w-50">
+        <input type="search" class="form-control" placeholder="Please enter a LRN or name"
+               name="student_name" value="{{ query }}">
+        <button class="btn btn-primary" type="submit">Search</button>
+      </div>
+    </form>
+
+    {% if query %}
+      <p class="text-muted">
+        {% if results %}
+          {{ results|length }} result{{ results|length|pluralize }} for "<strong>{{ query }}</strong>"
+        {% else %}
+          No students found for "<strong>{{ query }}</strong>"
+        {% endif %}
+      </p>
+    {% endif %}
+
+    <table class="table table-striped table-hover w-75">
+      <thead>
+        <tr>
+          <th scope="col">LRN</th>
+          <th scope="col">Name</th>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for student in results %}
+          <tr>
+            <td>{{ student.lrn }}</td>
+            <td>{{ student.last_name }}, {{ student.first_name }}</td>
+            
+            <td>
+              <a href="{% url 'student-detail' student.id %}" class="btn btn-info btn-sm">View</a>
+              <a href="{% url 'enroll-student' section.pk student.id %}" class="btn btn-info btn-sm">Enroll</a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="4" class="text-center text-muted">No results to display.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

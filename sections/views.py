@@ -2,6 +2,7 @@ from django.shortcuts import get_object_or_404, render
 from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from .models import Section
+from enrollment.models import Enrollment
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 # Create your views here.
 class SectionListView(LoginRequiredMixin, ListView):
@@ -16,6 +17,13 @@ class SectionDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
     model = Section
     template_name = 'sections/section_detail.html'
     context_object_name = 'section'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['enrollments'] = Enrollment.objects.filter(
+            section=self.get_object()
+        )
+        return context
 
     def test_func(self):
         section = self.get_object()

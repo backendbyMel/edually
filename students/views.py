@@ -57,15 +57,6 @@ class StudentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     form_class = AddStudentForm
     template_name = 'students/student_update.html'
     
-    def get_form_kwargs(self):
-        # 1. Get the dictionary of default arguments from the parent class
-        kwargs = super().get_form_kwargs()
-        
-        # 2. Inject your custom dynamic data (e.g., the current request user)
-        kwargs['user'] = self.request.user
-        
-        # 3. Return the modified dictionary
-        return kwargs
     
     def get_success_url(self):
         return reverse_lazy('student-detail', kwargs={'pk': self.kwargs['pk']})

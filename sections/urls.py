@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from .views import SectionListView, SectionDetailView, SectionCreateView, SectionUpdateView, SectionDeleteView
 
 urlpatterns = [
@@ -7,4 +7,5 @@ urlpatterns = [
     path('detail/<int:pk>/update', SectionUpdateView.as_view(),name='section-update'),
     path('create/', SectionCreateView.as_view(),name='section-create'),
     path('detail/<int:pk>/delete', SectionDeleteView.as_view(),name='section-delete'),
+    path('detail/<int:section_pk>/search/', include('enrollment.urls')),
 ]
