@@ -40,3 +40,12 @@ def enroll_student(request, section_pk, student_pk):
         messages.warning(request, 'Student is already enrolled')
     
     return redirect('section-detail', pk=section_pk)
+
+@login_required
+def enroll_delete(request, section_pk, enrollment_pk):
+    section = get_object_or_404(Section, pk=section_pk)
+    enrollment = get_object_or_404(Enrollment, pk=enrollment_pk, section=section, added_by=request.user)
+    enrollment_delete = enrollment.delete()
+    if enrollment_delete:
+        messages.success(request, 'Student is unenrolled from this section')
+    return redirect('section-detail', pk=section_pk)

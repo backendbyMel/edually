@@ -2,6 +2,21 @@
 {% load crispy_forms_tags %}
 {% block content %}
 	<div class="content-section">
+		<div class="alert alert-danger">
+			<h4>⚠️ Warning</h4>
+			<p>You are about to delete section 
+			<strong>{{ object.name }}</strong>.</p>
+			
+			<p>This will permanently delete:</p>
+			<ul>
+				<li>All students enrolled in this section</li>
+				<li>All attendance records</li>
+				<li>All grades and scores</li>
+				<li>All intervention records</li>
+			</ul>
+			
+			<p><strong>This action cannot be undone.</strong></p>
+		</div>
 		<form method="POST">
 			{% csrf_token %}
 			<fieldset class="form-group">

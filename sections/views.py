@@ -1,7 +1,7 @@
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from .models import Section
+from .models import Section, Subject
 from enrollment.models import Enrollment
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 # Create your views here.
@@ -33,7 +33,7 @@ class SectionDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
 
 class SectionCreateView(LoginRequiredMixin, CreateView):
     model = Section
-    fields = ['name','grade_level','is_adviser','is_subject_teacher','principal_name','school_year']
+    fields = ['name','grade_level','class_type','is_adviser','is_subject_teacher','principal_name','school_year']
     template_name = 'sections/section_create.html'
     success_url = reverse_lazy('section-home') 
     
@@ -43,7 +43,7 @@ class SectionCreateView(LoginRequiredMixin, CreateView):
 
 class SectionUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Section
-    fields = ['name','grade_level','is_adviser','is_subject_teacher','principal_name','school_year']
+    fields = ['name','grade_level','class_type','is_adviser','is_subject_teacher','principal_name','school_year']
     template_name = 'sections/section_update.html'
     
     def get_success_url(self):
@@ -66,5 +66,22 @@ class SectionDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     def test_func(self):
         section = self.get_object()
         if self.request.user == section.adviser:
+            return True
+        return False
+
+class SubjectCreateView(LoginRequiredMixin, CreateView):
+    model = Subject
+    fields = ['name','order','is_handled_by_owner']
+    template_name = 'sections/subject_create.html'
+    
+    def get_success_url(self):
+        return reverse_lazy('section-detail', kwargs={'pk': self.kwargs['pk']})
+
+    def get_object(self, queryset=None):
+        return get_object_or_404(Subject, pk=self.kwargs['pk'])
+    
+    def test_func(self):
+        subject = self.get_object()
+        if self.request.section == subject.section:
             return True
         return False
