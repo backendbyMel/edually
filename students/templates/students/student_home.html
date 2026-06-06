@@ -1,12 +1,31 @@
 {% extends 'users/base.html' %}
 {% block content %}
-  <h2>Students List</h2>
-  <form method="post" action="{% url 'student-create' %}">
-    {% csrf_token %}
-    <button type="submit" class="btn btn-primary">Create</button>
-  </form>
-  
-  {% if students %}
+<div class="d-flex justify-content-between align-items-center mb-2">
+    <h2>Students List</h2>
+    <small class="text-muted">
+        Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} 
+        of {{ page_obj.paginator.count }} records
+    </small>
+</div>
+<div>
+  <a href="{% url 'student-create' %}" class="btn btn-primary">Add new student</a>
+  <form method="get">
+   <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="search-container">
+        <input type="text" class="form-control search-input" name="q" value="{{ request.GET.q }}" placeholder="Search by LRN or name..."/>
+        {% if request.GET.q %}
+          <a href="{% url 'student-home' %}" style="font-style:italic;">Clear</a>
+        {% endif %}
+        <i class="fas fa-search search-icon"></i>
+      </div>
+    </div>
+  </div>
+</form>
+<br>
+</div>
+{% if students %}
+<div>
   <table class="table table-striped table-hover">
     <thead>
       <tr>
@@ -24,14 +43,17 @@
                   <td>{{ student.last_name }}</td>
                   <td>
                     <a href="{% url 'student-detail' student.id %}" class="btn btn-info">View Details</a>
+                    <a href="{% url 'student-delete' student.id %}" class="btn btn-danger">Delete</a>
                   </td>
               </tr>
           {% endfor %}
     </tbody>
   </table>
+  </div>
   {%else %}
   <div class="alert alert-info mt-3" role="alert">
-      There is no student yet. Click 'Create' button to add.
+      There is no student yet. Click <a href="{% url 'student-create' %}">'here'</a> to add new student.
   </div>
   {% endif %}
+  {% include 'partials/_pagination.html' %}
 {% endblock %}

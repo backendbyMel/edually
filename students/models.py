@@ -20,7 +20,7 @@ class Student(models.Model):
     complete_name = models.CharField(max_length=100)
     gender = models.CharField(max_length=10, choices=Gender_Choices, default='F')
     date_of_birth = models.DateField()
-    age = models.IntegerField(null=True)
+    age = models.IntegerField(null=True,blank=True, help_text="Manually input the age for SF9 purposes")
     birth_cert = models.CharField(max_length=5, choices=Birthcert_Choices, default='Y')
 
     class Meta:
@@ -34,8 +34,4 @@ class Student(models.Model):
         super(Student, self).save(*args, **kwargs)
 
     def __str__(self):
-        return self.lrn + self.complete_name
-
-    
-    # def get_absolute_url(self):
-    #     return reverse('student-detail', kwargs={'pk':self.pk})
+        return self.lrn + " " + self.complete_name

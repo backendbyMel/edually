@@ -28,6 +28,7 @@ urlpatterns = [
     path('logout/',auth_views.LogoutView.as_view(template_name='users/logout.html'),name="logout"),
     path('profile/',user_views.profile, name = "profile"),
     path('school_year/', include('schoolYear.urls')),
+    path('term/', include('term.urls')),
     path('', user_views.index, name="home"),
     path('section/', include('sections.urls')),
     path('student/', include('students.urls')),

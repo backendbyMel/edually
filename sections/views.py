@@ -5,6 +5,8 @@ from .models import Section, Subject
 from enrollment.models import Enrollment
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
+from attendance.models import Attendance
+import datetime
 # Create your views here.
 class SectionListView(LoginRequiredMixin, ListView):
     model = Section
@@ -28,6 +30,46 @@ class SectionDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
         context['subjects'] = Subject.objects.filter(
             section=self.object
         ).order_by('order')
+        
+        # Attendance quick stats
+        today = datetime.date.today()
+        enrollments = context['enrollments']
+        total_students = enrollments.count()
+
+        # Check if today's attendance is recorded
+        today_attendance = Attendance.objects.filter(
+            enrollment__section=self.object,
+            date=today
+        ).count()
+
+        context['total_students'] = total_students
+        context['today_recorded'] = today_attendance > 0
+        context['today_present'] = Attendance.objects.filter(
+            enrollment__section=self.object,
+            date=today,
+            status='P'
+        ).count()
+        context['today_absent'] = Attendance.objects.filter(
+            enrollment__section=self.object,
+            date=today,
+            status='A'
+        ).count()
+        at_risk_count = 0
+        for enrollment in enrollments:
+            total = Attendance.objects.filter(
+                enrollment=enrollment
+            ).count()
+            present = Attendance.objects.filter(
+                enrollment=enrollment,
+                status='P'
+            ).count()
+            if total > 0:
+                percentage = (present / total) * 100
+                if percentage < 80:
+                    at_risk_count += 1
+
+        
+        context['at_risk_count'] = at_risk_count  # hint: compute this
         return context
 
     def test_func(self):
@@ -86,11 +128,12 @@ class SectionDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 
 class SubjectCreateView(LoginRequiredMixin, CreateView):
     model = Subject
-    fields = ['name','order','is_handled_by_owner']
+    fields = ['name','term','order','is_handled_by_owner']
     template_name = 'sections/subject_create.html'
     
     def get_success_url(self):
-        return reverse_lazy('section-detail', kwargs={'pk': self.kwargs['pk']})
+        base_url = reverse_lazy('section-detail', kwargs={'pk': self.kwargs['pk']})
+        return f"{base_url}#listOfSubjects"
 
     def form_valid(self, form):
         section_id = self.kwargs.get('pk')
@@ -101,12 +144,13 @@ class SubjectCreateView(LoginRequiredMixin, CreateView):
 
 class SubjectUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Subject
-    fields = ['name','order','is_handled_by_owner']
-    template_name = 'sections/subject_create.html'
+    fields = ['name','term','order','is_handled_by_owner']
+    template_name = 'sections/subject_update.html'
     
     def get_success_url(self):
-        return reverse_lazy('section-detail', kwargs={'pk': self.kwargs['section_pk']})
-
+        base_url = reverse_lazy('section-detail', kwargs={'pk': self.kwargs['section_pk']})
+        return f"{base_url}#listOfSubjects"
+    
     def get_object(self, queryset=None):
         return get_object_or_404(Subject, pk=self.kwargs['subject_pk'], section_id=self.kwargs['section_pk'])
 
@@ -125,6 +169,7 @@ class SubjectDeleteView(LoginRequiredMixin, DeleteView):
         return redirect(self.get_success_url())
 
     def get_success_url(self):
-        return reverse_lazy('section-detail', kwargs={'pk': self.kwargs['section_pk']})
+        base_url = reverse_lazy('section-detail', kwargs={'pk': self.kwargs['section_pk']})
+        return f"{base_url}#listOfSubjects"
     
 

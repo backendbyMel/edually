@@ -1,6 +1,12 @@
 {% extends 'users/base.html' %}  
 {% block content %}
+<div class="d-flex justify-content-between align-items-center mt-3">
+    <a href="{% url 'section-home' %}" class="btn btn-secondary btn-sm">
+        ← Back
+    </a>
+</div>
 <h2>{{ section.name }} section</h2>
+
 <ul class="nav nav-tabs mt-3">
     <li class="nav-item">
         <a class="nav-link active" 
@@ -10,6 +16,13 @@
         </a>
     </li>
     {% if object.is_adviser %}
+    <li class="nav-item">
+        <a class="nav-link" 
+           data-bs-toggle="tab" 
+           href="#attendance">
+            Attendance
+        </a>
+    </li>
     <li class="nav-item">
         <a class="nav-link" 
            data-bs-toggle="tab" 
@@ -78,6 +91,99 @@
           </div>
       </div>
     </div>
+    <!-- ATTENDACE -->
+    <div class="tab-pane fade" id="attendance">
+    {% if object.is_adviser %}
+    <div class="card mt-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span>Attendance</span>
+        </div>
+        <div class="card-body">
+
+            <!-- Quick Stats Row -->
+            <div class="row mb-4 text-center">
+                <div class="col-md-3">
+                    <div class="card border-primary">
+                        <div class="card-body">
+                            <h3 class="text-primary">
+                                {{ total_students }}
+                            </h3>
+                            <small>Total Students</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card 
+                        {% if today_recorded %}border-success
+                        {% else %}border-danger{% endif %}">
+                        <div class="card-body">
+                            <h3 class="
+                                {% if today_recorded %}text-success
+                                {% else %}text-danger{% endif %}">
+                                {% if today_recorded %}✅{% else %}❌{% endif %}
+                            </h3>
+                            <small>Today's Attendance</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-success">
+                        <div class="card-body">
+                            <h3 class="text-success">
+                                {{ today_present }}
+                            </h3>
+                            <small>Present Today</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-danger">
+                        <div class="card-body">
+                            <h3 class="text-danger">
+                                {{ at_risk_count }}
+                            </h3>
+                            <small>At-Risk Students</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alert if today not recorded -->
+            {% if not today_recorded %}
+            <div class="alert alert-warning">
+                ⚠️ Attendance for today has not been recorded yet.
+            </div>
+            {% endif %}
+
+            <!-- Alert if at-risk students exist -->
+            {% if at_risk_count > 0 %}
+            <div class="alert alert-danger">
+                🔴 {{ at_risk_count }} student(s) are at risk 
+                due to low attendance. 
+                Click View Student Summary to see details.
+            </div>
+            {% endif %}
+
+            <!-- Action Buttons -->
+            <div class="d-flex gap-2 mt-3">
+                <a class="btn btn-primary" 
+                   href="{% url 'attendance-record' object.id %}">
+                    📋 Record Attendance
+                </a>
+                <a class="btn btn-secondary"
+                   href="{% url 'attendance-summary' object.id %}">
+                    📅 View by Date
+                </a>
+                <a class="btn btn-info"
+                   href="{% url 'attendance-student-summary' object.id %}">
+                    👥 View by Student
+                </a>
+            </div>
+
+        </div>
+    </div>
+    {% endif %}
+</div>
     <!-- LIST OF SUBJECTS -->
     <div class="tab-pane fade" id="listOfSubjects">
       {% if object.is_adviser %}
@@ -181,7 +287,7 @@
                       <td>{{ enrollment.student.last_name }}, {{ enrollment.student.first_name }}</td>
                       <td>
                         <a type="submit" class="btn btn-info" href="{% url 'student-detail' enrollment.student.id %}">View Details</a>
-                        <a type="submit" class="btn btn-danger" href="{% url 'enroll-delete' section.pk enrollment.id %}">Delete from this section</a>
+                        <a type="submit" class="btn btn-danger" href="{% url 'enroll-delete' section.pk enrollment.id %}">Unenroll</a>
                     </td>
                   </tr>
               {% empty %}
@@ -209,6 +315,23 @@
     
         document.getElementById('subjectName').textContent = subjectName;
         document.getElementById('deleteLink').href = deleteUrl
+    })
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        // Read the hash from the URL
+        const hash = window.location.hash
+        
+        // If hash exists activate that tab
+        if (hash) {
+            const tab = document.querySelector(
+                `.nav-link[href="${hash}"]`
+            )
+            if (tab) {
+                new bootstrap.Tab(tab).show()
+            }
+        }
     })
 </script>
 {% endblock %}

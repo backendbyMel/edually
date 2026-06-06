@@ -1,4 +1,5 @@
 from django.db import IntegrityError
+from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView, DetailView, UpdateView, DeleteView
@@ -6,16 +7,26 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from .models import Student
 from bootstrap_datepicker_plus.widgets import DatePickerInput
 from .forms import AddStudentForm
+from django.db.models import Q
 # Create your views here.
 class StudentListView(LoginRequiredMixin, ListView):
     model = Student
     field = ['lrn','first_name','middle_name','last_name','gender','date_of_birth','age','birth_cert']
     template_name = 'students/student_home.html'
     context_object_name = 'students'
+    paginate_by = 8
 
     def get_queryset(self):
-        return Student.objects.filter(added_by=self.request.user)
-
+        queryset = Student.objects.filter(added_by=self.request.user)
+        q = self.request.GET.get('q', '').strip()
+        if q:
+            queryset = queryset.filter(
+                Q(lrn__icontains=q) |
+                Q(first_name__icontains=q) |
+                Q(middle_name__icontains=q) |
+                Q(last_name__icontains=q)
+            )
+        return queryset
 class StudentCreateView(LoginRequiredMixin, CreateView):
     model = Student
     form_class = AddStudentForm
@@ -31,7 +42,7 @@ class StudentCreateView(LoginRequiredMixin, CreateView):
         except IntegrityError:
             form.add_error(
                 'lrn', 
-                "A student with this LRN already exists for your account."
+                "A student with this LRN already exists"
             )
             return self.form_invalid(form)
     

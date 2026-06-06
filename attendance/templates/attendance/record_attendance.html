@@ -1,0 +1,85 @@
+{% extends 'users/base.html' %}
+{% load attendance_filters %}
+{% block content %}
+
+<h2>Record Attendance for {{ section.name }}</h2>
+<form method="POST" action="{% url 'attendance-create' section.pk %}">
+    {% csrf_token %}
+    <div class="mb-3 w-25">
+        <label class="form-label">Select Date</label>
+        <input type="date" 
+               name="date" 
+               class="form-control"
+               value="{{ selected_date }}"
+               required>
+    </div>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>LRN</th>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Remarks</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for enrollment in enrollments %}
+            {% with att=existing_attendance|get_item:enrollment.pk %}
+            <tr>
+                <td>{{ enrollment.student.lrn }}</td>
+                <td>{{ enrollment.student.last_name }},
+                    {{ enrollment.student.first_name }}</td>
+                <td>
+                    <select name="status_{{ enrollment.pk }}"
+                            class="form-select">
+
+                        <!-- Present: selected if att exists and is P -->
+                        <!-- OR selected by default if no att exists -->
+                        <option value="P"
+                            {% if att.status == 'P' %}selected
+                            {% elif not att %}selected
+                            {% endif %}>
+                            Present
+                        </option>
+
+                        <option value="A"
+                            {% if att.status == 'A' %}selected{% endif %}>
+                            Absent
+                        </option>
+
+                        <option value="L"
+                            {% if att.status == 'L' %}selected{% endif %}>
+                            Late
+                        </option>
+
+                        <option value="E"
+                            {% if att.status == 'E' %}selected{% endif %}>
+                            Excused
+                        </option>
+
+                    </select>
+                </td>
+                <td>
+                    <input type="text"
+                        name="remarks_{{ enrollment.pk }}"
+                        class="form-control"
+                        placeholder="Optional"
+                        value="{{ att.remarks|default:'' }}">
+                        <!--       ↑ pre-fills remarks if exists -->
+                </td>
+            </tr>
+            {% endwith %}
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <button type="submit" class="btn btn-primary">
+        Save Attendance
+    </button>
+    <a href="{% url 'section-detail' section.pk %}#attendance" 
+       class="btn btn-secondary">
+        Cancel
+    </a>
+</form>
+
+{% endblock %}

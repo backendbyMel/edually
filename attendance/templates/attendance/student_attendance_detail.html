@@ -1,0 +1,139 @@
+{% extends 'users/base.html' %}
+{% block content %}
+
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mt-3">
+    <div>
+        <h4>
+            {{ enrollment.student.last_name }},
+            {{ enrollment.student.first_name }}
+        </h4>
+        <small class="text-muted">
+            LRN: {{ enrollment.student.lrn }} |
+            Section: {{ section.name }}
+        </small>
+    </div>
+    <a href="{% url 'attendance-student-summary' section.pk %}"
+       class="btn btn-secondary btn-sm">
+        ← Back
+    </a>
+</div>
+
+<!-- At-Risk Warning -->
+{% if is_at_risk %}
+<div class="alert alert-danger mt-3">
+    ⚠️ This student is at risk! 
+    Attendance percentage is {{ percentage }}% 
+    which is below the required threshold.
+</div>
+{% endif %}
+
+<!-- Term Filter -->
+<form method="GET" class="row mt-3 mb-3">
+    <div class="col-md-3">
+        <select name="term" class="form-select">
+            <option value="">All Terms</option>
+            {% for term in terms %}
+            <option value="{{ term.pk }}"
+                {% if selected_term == term.pk|stringformat:"s" %}
+                    selected
+                {% endif %}>
+                {{ term.name }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-2 d-flex align-items-end">
+        <button type="submit" class="btn btn-primary w-100">
+            Filter
+        </button>
+    </div>
+    <div class="col-md-2 d-flex align-items-end">
+        <a href="{% url 'attendance-student-detail' section.pk enrollment.pk %}"
+           class="btn btn-secondary w-100">
+            Clear
+        </a>
+    </div>
+</form>
+
+<!-- Attendance Table -->
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Term</th>
+            <th>Status</th>
+            <th>Remarks</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for attendance in attendances %}
+        <tr class="
+            {% if attendance.status == 'A' %}table-danger
+            {% elif attendance.status == 'L' %}table-warning
+            {% elif attendance.status == 'E' %}table-info
+            {% endif %}">
+            <td>{{ attendance.date }}</td>
+            <td>{{ attendance.term }}</td>
+            <td>{{ attendance.get_status_display }}</td>
+            <td>{{ attendance.remarks|default:'—' }}</td>
+            <td>
+                <a href="{% url 'attendance-student-edit' section.pk attendance.pk %}"
+                   class="btn btn-warning btn-sm">
+                    Edit
+                </a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="5" class="text-center text-muted">
+                No attendance records found.
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Summary Card -->
+{% if total > 0 %}
+<div class="card mt-3">
+    <div class="card-header">
+        Attendance Summary
+    </div>
+    <div class="card-body">
+        <div class="row text-center">
+            <div class="col">
+                <h5 class="text-primary">{{ total }}</h5>
+                <small>Total Days</small>
+            </div>
+            <div class="col">
+                <h5 class="text-success">{{ present }}</h5>
+                <small>Present</small>
+            </div>
+            <div class="col">
+                <h5 class="text-danger">{{ absent }}</h5>
+                <small>Absent</small>
+            </div>
+            <div class="col">
+                <h5 class="text-warning">{{ late }}</h5>
+                <small>Late</small>
+            </div>
+            <div class="col">
+                <h5 class="text-info">{{ excused }}</h5>
+                <small>Excused</small>
+            </div>
+            <div class="col">
+                <h5 class="
+                    {% if is_at_risk %}text-danger
+                    {% else %}text-success{% endif %}">
+                    {{ percentage }}%
+                </h5>
+                <small>Attendance Rate</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -2,14 +2,27 @@
 {% load crispy_forms_tags %}
 {% block content %}
 	<div class="content-section">
+		<div class="alert alert-danger" role="alert">
+			<h5 class="alert-heading">
+				<i class="bi bi-exclamation-triangle-fill"></i>
+				Warning!
+			</h5>
+
+			<p class="mb-0">
+				This action <strong>cannot be undone</strong>.
+				Deleting this student will permanently remove all associated records,
+				including grades, attendance, enrollments, and other related information.
+			</p>
+		</div>
 		<form method="POST">
 			{% csrf_token %}
 			<fieldset class="form-group">
-				<legend class="border-bottom mb-4">Are you sure you want to delete student: "{{ object }}"?</legend>
+				<legend class="border-bottom mb-4">Are you sure you want to delete student: "{{ object.complete_name }}"?</legend>
 			{{ form|crispy }}
 			</fieldset>
 			<div class="form-group">
 				<button class="btn btn-danger" type="submit" value="Confirm">Delete</button>
+				<a href="{% url 'student-detail' object.id %}" class="btn btn-secondary" type="submit">Cancel</a>
 			</div>
 		</form>
 	</div>

@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from schoolYear.models import schoolYear
+from term.models import Term
 from django.urls import reverse
 
 Class_Type = {
@@ -27,6 +28,7 @@ class Section(models.Model):
 
 class Subject(models.Model):
     section = models.ForeignKey(Section, on_delete=models.CASCADE)
+    term = models.ForeignKey(Term, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     order = models.IntegerField()
     is_handled_by_owner = models.BooleanField(default=False, verbose_name="I am the subject teacher for this",help_text="Check this if you personally teach this subject. \nGrades will be auto-computed from scores you encode. \nLeave unchecked if another teacher handles this subject \nand you will manually input the final grade.")

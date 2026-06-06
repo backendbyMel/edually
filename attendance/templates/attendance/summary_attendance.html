@@ -1,0 +1,85 @@
+{% extends 'users/base.html' %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mt-3">
+    <h4>Attendance History for {{ section.name }}</h4>
+    <a href="{% url 'section-detail' section.pk %}#attendance"
+       class="btn btn-secondary btn-sm">
+        ← Back
+    </a>
+</div>
+
+<form method="GET" class="row mt-3 mb-3">
+    <div class="col-md-3">
+        <label class="form-label">Term</label>
+        <select name="term" class="form-select">
+            <option value="">Please choose term</option>
+            {% for term in term_choices %}
+            <option value="{{ term.pk }}">{{ term.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Specific Date</label>
+        <input type="date" 
+               name="date" 
+               class="form-control"
+               value="{{ selected_date }}">
+    </div>
+    <div class="col-md-2 d-flex align-items-end">
+        <button type="submit" class="btn btn-primary w-100">
+            Filter
+        </button>
+    </div>
+    <div class="col-md-2 d-flex align-items-end">
+        <a href="{% url 'attendance-summary' section.pk %}" 
+           class="btn btn-secondary w-100">
+            Clear
+        </a>
+    </div>
+</form>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Term</th>
+            <th>Present (M)</th>
+            <th>Present (F)</th>
+            <th>Absent</th>
+            <th>Late</th>
+            <th>Excused</th>
+            <th>Total</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for summary in daily_summary %}
+        <tr>
+            <td>{{ summary.date }}</td>
+            <td>{{ summary.term }}</td>
+            <td>{{ summary.present_male }}</td>
+            <td>{{ summary.present_female }}</td>
+            <td>{{ summary.absent }}</td>
+            <td>{{ summary.late }}</td>
+            <td>{{ summary.excused }}</td>
+            <td>{{ summary.total }}</td>
+            <td>
+                <!-- Edit attendance for this date -->
+                <a href="{% url 'attendance-record' section.pk %}?date={{ summary.date|date:'Y-m-d' }}&term={{ summary.term }}"
+                   class="btn btn-info btn-sm">
+                    Edit
+                </a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="9" class="text-center">
+                No attendance records found.
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

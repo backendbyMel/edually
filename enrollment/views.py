@@ -3,6 +3,7 @@ from .models import Student, Section, Enrollment
 from django.db.models import Q
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.urls import reverse
 # Create your views here.
 
 @login_required
@@ -35,11 +36,12 @@ def enroll_student(request, section_pk, student_pk):
         added_by=request.user
     )
     if created:
-        messages.success(request, 'Student is just enrolled')
+        messages.success(request, f'Student {enrollment.student.lrn} is enrolled successfully')
     else:
-        messages.warning(request, 'Student is already enrolled')
+        messages.warning(request, f'Student {enrollment.student.lrn} is already enrolled')
     
-    return redirect('section-detail', pk=section_pk)
+    base_url = reverse('section-detail', kwargs={'pk': section_pk})
+    return redirect(f"{base_url}#enrolledStudents")
 
 @login_required
 def enroll_delete(request, section_pk, enrollment_pk):
@@ -47,5 +49,6 @@ def enroll_delete(request, section_pk, enrollment_pk):
     enrollment = get_object_or_404(Enrollment, pk=enrollment_pk, section=section, added_by=request.user)
     enrollment_delete = enrollment.delete()
     if enrollment_delete:
-        messages.success(request, 'Student is unenrolled from this section')
-    return redirect('section-detail', pk=section_pk)
+        messages.success(request, f'Student {enrollment.student.lrn} is unenrolled from the section {enrollment.section.name} successfully')
+    base_url = reverse('section-detail', kwargs={'pk': section_pk})
+    return redirect(f"{base_url}#enrolledStudents")

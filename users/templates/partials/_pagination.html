@@ -1,0 +1,91 @@
+{% load static %}
+{% if user.is_authenticated %}
+{% if page_obj.has_other_pages %}
+
+<div class="d-flex flex-column align-items-center mt-4">
+    <p class="text-muted small mb-2">
+        Showing page <strong>{{ page_obj.number }}</strong> 
+        of <strong>{{ page_obj.paginator.num_pages }}</strong>
+        — <strong>{{ page_obj.paginator.count }}</strong> total records
+    </p>
+
+    <nav>
+        <ul class="pagination pagination-sm">
+
+            <!-- First Page -->
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" 
+                   href="?page=1{{ extra_params }}"
+                   title="First Page">
+                    «
+                </a>
+            </li>
+
+            <!-- Previous Page -->
+            <li class="page-item">
+                <a class="page-link" 
+                   href="?page={{ page_obj.previous_page_number }}{{ extra_params }}">
+                    ‹ Previous
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">«</span>
+            </li>
+            <li class="page-item disabled">
+                <span class="page-link">‹ Previous</span>
+            </li>
+            {% endif %}
+
+            <!-- Page Numbers -->
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <!-- Current Page -->
+                <li class="page-item active">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <!-- Show nearby pages only -->
+                <li class="page-item">
+                    <a class="page-link" 
+                       href="?page={{ num }}{{ extra_params }}">
+                        {{ num }}
+                    </a>
+                </li>
+                {% endif %}
+            {% endfor %}
+
+            <!-- Next Page -->
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" 
+                   href="?page={{ page_obj.next_page_number }}{{ extra_params }}">
+                    Next ›
+                </a>
+            </li>
+
+            <!-- Last Page -->
+            <li class="page-item">
+                <a class="page-link" 
+                   href="?page={{ page_obj.paginator.num_pages }}{{ extra_params }}"
+                   title="Last Page">
+                    »
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">Next ›</span>
+            </li>
+            <li class="page-item disabled">
+                <span class="page-link">»</span>
+            </li>
+            {% endif %}
+
+        </ul>
+    </nav>
+
+</div>
+
+{% endif %}
+{% endif %}
