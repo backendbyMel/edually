@@ -48,7 +48,7 @@
           </tr>
         {% empty %}
           <tr>
-            <td colspan="4" class="text-center text-muted">No results to display.</td>
+            <td colspan="4" class="text-center text-muted">No results to display. <a href="{% url 'student-create' %}">Click here to add student</a></td>
           </tr>
         {% endfor %}
       </tbody>

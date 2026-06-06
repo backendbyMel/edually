@@ -1,9 +1,10 @@
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from .models import Section, Subject
 from enrollment.models import Enrollment
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib import messages
 # Create your views here.
 class SectionListView(LoginRequiredMixin, ListView):
     model = Section
@@ -23,6 +24,10 @@ class SectionDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
         context['enrollments'] = Enrollment.objects.filter(
             section=self.get_object()
         )
+
+        context['subjects'] = Subject.objects.filter(
+            section=self.object
+        ).order_by('order')
         return context
 
     def test_func(self):
@@ -63,6 +68,16 @@ class SectionDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     success_url = reverse_lazy('section-home') 
     template_name = "sections/section_confirm_delete.html"
 
+    def post(self, request, *args, **kwargs):
+        section = self.get_object()
+        print(f"\n\n\n\n{request.POST}")
+        if "cancel" in request.POST:
+            messages.success(self.request, f'The section {section.name} is not deleted')
+            return redirect('section-home')
+        else:
+            messages.success(self.request, f'The section {section.name} is deleted successfully.')
+            return super(SectionDeleteView, self).post(request, *args, **kwargs)
+            
     def test_func(self):
         section = self.get_object()
         if self.request.user == section.adviser:
@@ -77,11 +92,39 @@ class SubjectCreateView(LoginRequiredMixin, CreateView):
     def get_success_url(self):
         return reverse_lazy('section-detail', kwargs={'pk': self.kwargs['pk']})
 
-    def get_object(self, queryset=None):
-        return get_object_or_404(Subject, pk=self.kwargs['pk'])
+    def form_valid(self, form):
+        section_id = self.kwargs.get('pk')
+        section = get_object_or_404(Section, pk=section_id)
+        form.instance.section = section
+        return super().form_valid(form)
+
+
+class SubjectUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Subject
+    fields = ['name','order','is_handled_by_owner']
+    template_name = 'sections/subject_create.html'
     
+    def get_success_url(self):
+        return reverse_lazy('section-detail', kwargs={'pk': self.kwargs['section_pk']})
+
+    def get_object(self, queryset=None):
+        return get_object_or_404(Subject, pk=self.kwargs['subject_pk'], section_id=self.kwargs['section_pk'])
+
     def test_func(self):
         subject = self.get_object()
-        if self.request.section == subject.section:
+        if self.request.user == subject.section.adviser:
             return True
         return False
+
+class SubjectDeleteView(LoginRequiredMixin, DeleteView):
+    model = Subject
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        self.object.delete()
+        return redirect(self.get_success_url())
+
+    def get_success_url(self):
+        return reverse_lazy('section-detail', kwargs={'pk': self.kwargs['section_pk']})
+    
+

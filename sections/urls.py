@@ -4,7 +4,9 @@ from .views import (SectionListView,
                     SectionCreateView, 
                     SectionUpdateView, 
                     SectionDeleteView,
-                    SubjectCreateView)
+                    SubjectCreateView,
+                    SubjectUpdateView,
+                    SubjectDeleteView)
 
 urlpatterns = [
     path('', SectionListView.as_view(),name='section-home'),
@@ -13,5 +15,7 @@ urlpatterns = [
     path('create/', SectionCreateView.as_view(),name='section-create'),
     path('detail/<int:pk>/delete', SectionDeleteView.as_view(),name='section-delete'),
     path('detail/<int:section_pk>/', include('enrollment.urls')),
-    path('detail/<int:section_pk>/subject/create/', SubjectCreateView.as_view(),name='subject-create')
+    path('detail/<int:pk>/subject/create/', SubjectCreateView.as_view(),name='subject-create'),
+    path('detail/<int:section_pk>/subject/update/<int:subject_pk>', SubjectUpdateView.as_view(),name='subject-update'),
+    path('detail/<int:section_pk>/subject/delete/<int:pk>', SubjectDeleteView.as_view(),name='subject-delete')
 ]

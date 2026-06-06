@@ -20,7 +20,16 @@
       {% for section in sections %}
               <tr>
                   <td>{{ section.name }}</td>
-                  <td>{{ section.get_role_display }}</td>
+                  <td>{% if section.is_adviser %}
+                          ✅ Adviser
+                        {% else %}
+                          ❌ Not Adviser
+                      {% endif %}
+                      {% if section.is_subject_teacher %}
+                          ✅ Subject Teacher
+                      {% else %}
+                          ❌ Not Subject Teacher
+                      {% endif %}</td>
                   <td>{{ section.school_year }}</td>
                   <td>
                     <a href="{% url 'section-detail' section.id %}" class="btn btn-info">View Details</a>

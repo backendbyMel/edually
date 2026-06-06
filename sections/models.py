@@ -30,3 +30,6 @@ class Subject(models.Model):
     name = models.CharField(max_length=100)
     order = models.IntegerField()
     is_handled_by_owner = models.BooleanField(default=False, verbose_name="I am the subject teacher for this",help_text="Check this if you personally teach this subject. \nGrades will be auto-computed from scores you encode. \nLeave unchecked if another teacher handles this subject \nand you will manually input the final grade.")
+
+    def __str__(self):
+        return self.name

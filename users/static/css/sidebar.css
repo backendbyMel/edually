@@ -9,7 +9,6 @@
 #cs-sidebar *::after {
   box-sizing: border-box;
 }
-
 /* --- Sidebar shell --- */
 #cs-sidebar {
   width: 260px;
