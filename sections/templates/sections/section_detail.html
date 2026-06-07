@@ -148,24 +148,64 @@
                 </div>
             </div>
 
-            <!-- Alert if today not recorded -->
-            {% if not today_recorded %}
-            <div class="alert alert-warning">
-                ⚠️ Attendance for today has not been recorded yet.
-            </div>
-            {% endif %}
+            {% if is_school_day and not today_recorded %}
+<div class="alert alert-warning">
+    ⚠️ Attendance for today has not been recorded yet.
+</div>
+{% endif %}
 
-            <!-- Alert if at-risk students exist -->
+{% if is_school_day and today_recorded %}
+<div class="alert alert-success">
+    ✅ Attendance recorded — {{ today_present }} present, {{ today_absent }} absent.
+</div>
+{% endif %}
+
+{% if not is_school_day and active_term %}
+<div class="alert alert-info">
+    📅 Today is a weekend. Next school day is within
+    {{ active_term.name }} (ends {{ active_term.end_date|date:"F d, Y" }}).
+</div>
+{% endif %}
+
+{% if not active_term %}
+<div class="alert alert-secondary">
+    📅 No active term today. Classes are not in session.
+</div>
+{% endif %}
+
+            <!-- Alert if at-risk students exist
             {% if at_risk_count > 0 %}
             <div class="alert alert-danger">
                 🔴 {{ at_risk_count }} student(s) are at risk 
                 due to low attendance. 
                 Click View Student Summary to see details.
             </div>
-            {% endif %}
+            {% endif %} -->
 
             <!-- Action Buttons -->
             <div class="d-flex gap-2 mt-3">
+                {% if request.user == section.adviser %}
+<div class="dropdown">
+    <button class="btn btn-success btn-sm dropdown-toggle"
+            type="button"
+            data-bs-toggle="dropdown"
+            aria-expanded="false">
+        ⬇ Download SF2
+    </button>
+    <ul class="dropdown-menu">
+        {% for m in term_months %}
+        <li>
+            <a class="dropdown-item"
+               href="{% url 'generate-sf2' section.pk m.year m.num %}">
+                {{ m.label }}
+            </a>
+        </li>
+        {% empty %}
+        <li><span class="dropdown-item text-muted">No terms configured yet.</span></li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
                 <a class="btn btn-primary" 
                    href="{% url 'attendance-record' object.id %}">
                     📋 Record Attendance
@@ -287,7 +327,15 @@
                       <td>{{ enrollment.student.last_name }}, {{ enrollment.student.first_name }}</td>
                       <td>
                         <a type="submit" class="btn btn-info" href="{% url 'student-detail' enrollment.student.id %}">View Details</a>
-                        <a type="submit" class="btn btn-danger" href="{% url 'enroll-delete' section.pk enrollment.id %}">Unenroll</a>
+                        <button type="button"
+                                class="btn btn-danger"
+                                data-bs-toggle="modal"
+                                data-bs-target="#unenrollModal"
+                                data-student-name="{{ enrollment.student.last_name }}, {{ enrollment.student.first_name }}"
+                                data-student-lrn="{{ enrollment.student.lrn }}"
+                                data-unenroll-url="{% url 'enroll-delete' section.pk enrollment.id %}">
+                          Unenroll
+                        </button>
                     </td>
                   </tr>
               {% empty %}
@@ -334,4 +382,5 @@
         }
     })
 </script>
+{% include 'enrollment/unenroll_confirm_delete.html' %}
 {% endblock %}

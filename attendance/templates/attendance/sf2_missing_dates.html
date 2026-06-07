@@ -1,0 +1,27 @@
+{% extends 'users/base.html' %}
+{% block content %}
+
+<div class="mt-4">
+    <div class="alert alert-danger">
+        <h5 class="alert-heading">
+            ⚠️ Cannot Generate SF2 — {{ month_label }}
+        </h5>
+        <p>
+            The following <strong>{{ missing_dates|length }} school day(s)</strong>
+            have incomplete or missing attendance records for
+            <strong>{{ section.name }}</strong>.
+            Please complete them before downloading the SF2.
+        </p>
+        <hr>
+        <ul class="mb-0">
+            {% for d in missing_dates %}
+            <li>{{ d }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <a href="{% url 'section-detail' section.pk %}#attendance"
+       class="btn btn-secondary btn-sm">← Back to Section</a>
+</div>
+
+{% endblock %}

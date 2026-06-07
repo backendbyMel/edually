@@ -7,6 +7,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
 from attendance.models import Attendance
 import datetime
+from attendance.views import get_term_months
+from term.models import Term
 # Create your views here.
 class SectionListView(LoginRequiredMixin, ListView):
     model = Section
@@ -15,7 +17,7 @@ class SectionListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         return Section.objects.filter(adviser=self.request.user)
-    
+
 class SectionDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
     model = Section
     template_name = 'sections/section_detail.html'
@@ -23,9 +25,10 @@ class SectionDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['months'] = get_term_months()
         context['enrollments'] = Enrollment.objects.filter(
             section=self.get_object()
-        )
+        ).order_by('student__last_name','student__gender')
 
         context['subjects'] = Subject.objects.filter(
             section=self.object
@@ -41,32 +44,52 @@ class SectionDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
             enrollment__section=self.object,
             date=today
         ).count()
+        
+        active_term = Term.objects.filter(
+                start_date__lte=today,
+                end_date__gte=today,
+                is_active=True,
+            ).first()
+        
+        is_school_day = active_term is not None and today.weekday() < 5
 
+        if is_school_day:
+            today_attendance = Attendance.objects.filter(
+                enrollment__section=self.object,
+                date=today,
+            ).count()
+            context['today_recorded'] = today_attendance >= total_students
+            context['today_present'] = Attendance.objects.filter(
+                enrollment__section=self.object,
+                date=today,
+                status='P',
+            ).count()
+            context['today_absent'] = Attendance.objects.filter(
+                enrollment__section=self.object,
+                date=today,
+                status='A',
+            ).count()
+        else:
+            # Outside term or weekend — suppress the warning entirely
+            context['today_recorded'] = True   # prevents warning from showing
+            context['today_present'] = 0
+            context['today_absent'] = 0
+
+        context['is_school_day'] = is_school_day
+        context['active_term'] = active_term
         context['total_students'] = total_students
-        context['today_recorded'] = today_attendance > 0
-        context['today_present'] = Attendance.objects.filter(
-            enrollment__section=self.object,
-            date=today,
-            status='P'
-        ).count()
-        context['today_absent'] = Attendance.objects.filter(
-            enrollment__section=self.object,
-            date=today,
-            status='A'
-        ).count()
+
         at_risk_count = 0
         for enrollment in enrollments:
             total = Attendance.objects.filter(
                 enrollment=enrollment
             ).count()
-            present = Attendance.objects.filter(
-                enrollment=enrollment,
-                status='P'
-            ).count()
-            if total > 0:
-                percentage = (present / total) * 100
-                if percentage < 80:
-                    at_risk_count += 1
+            absent = Attendance.objects.filter(
+                    enrollment=enrollment,
+                    status='A',
+                ).count()
+            if total > 0 and (absent / total) * 100 > 20:
+                at_risk_count += 1
 
         
         context['at_risk_count'] = at_risk_count  # hint: compute this
@@ -93,6 +116,13 @@ class SectionUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     fields = ['name','grade_level','class_type','is_adviser','is_subject_teacher','principal_name','school_year']
     template_name = 'sections/section_update.html'
     
+    def form_valid(self, form):
+        if form.is_valid():
+            messages.success(self.request, f'Section is updated successfully!')
+        else:
+            messages.error(self.request, f'Section is not updated')
+        return super().form_valid(form)
+
     def get_success_url(self):
         return reverse_lazy('section-detail', kwargs={'pk': self.kwargs['pk']})
 
