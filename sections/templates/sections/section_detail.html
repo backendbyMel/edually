@@ -15,6 +15,13 @@
             Section Detail
         </a>
     </li>
+    <li class="nav-item">
+        <a class="nav-link" 
+           data-bs-toggle="tab" 
+           href="#enrolledStudents">
+            Enrolled Students
+        </a>
+    </li>
     {% if object.is_adviser %}
     <li class="nav-item">
         <a class="nav-link" 
@@ -31,13 +38,6 @@
         </a>
     </li>
     {% endif %}
-    <li class="nav-item">
-        <a class="nav-link" 
-           data-bs-toggle="tab" 
-           href="#enrolledStudents">
-            Enrolled Students
-        </a>
-    </li>
 </ul>
 {% if object.adviser == user %}
 <!-- MODAL FORM -->
@@ -148,9 +148,9 @@
                 </div>
             </div>
 
-            {% if is_school_day and not today_recorded %}
+{% if is_school_day and not today_recorded %}
 <div class="alert alert-warning">
-    ⚠️ Attendance for today has not been recorded yet.
+⚠️ Attendance for today has not been recorded yet.
 </div>
 {% endif %}
 
@@ -184,9 +184,10 @@
 
             <!-- Action Buttons -->
             <div class="d-flex gap-2 mt-3">
-                {% if request.user == section.adviser %}
+                {% if request.user == section.adviser or request.user.is_superuser %}
+
 <div class="dropdown">
-    <button class="btn btn-success btn-sm dropdown-toggle"
+    <button class="btn btn-success dropdown-toggle"
             type="button"
             data-bs-toggle="dropdown"
             aria-expanded="false">
@@ -201,7 +202,11 @@
             </a>
         </li>
         {% empty %}
-        <li><span class="dropdown-item text-muted">No terms configured yet.</span></li>
+        <li>
+            <span class="dropdown-item text-muted small">
+                No terms configured for the active school year.
+            </span>
+        </li>
         {% endfor %}
     </ul>
 </div>

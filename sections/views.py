@@ -9,6 +9,7 @@ from attendance.models import Attendance
 import datetime
 from attendance.views import get_term_months
 from term.models import Term
+from attendance.views import calculate_school_days
 # Create your views here.
 class SectionListView(LoginRequiredMixin, ListView):
     model = Section
@@ -25,7 +26,7 @@ class SectionDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['months'] = get_term_months()
+        context['term_months'] = get_term_months()
         context['enrollments'] = Enrollment.objects.filter(
             section=self.get_object()
         ).order_by('student__last_name','student__gender')
@@ -48,17 +49,28 @@ class SectionDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
         active_term = Term.objects.filter(
                 start_date__lte=today,
                 end_date__gte=today,
-                is_active=True,
+                is_current=True,
             ).first()
         
+        total_school_days = 0
+        if active_term:
+            # Get the specific term dates
+            term_obj = get_object_or_404(Term, pk=active_term.id)
+            total_school_days = calculate_school_days(term_obj.start_date, term_obj.end_date)
+        else:
+            total_school_days = 0
+            for term_obj in Term.objects.all():
+                total_school_days += calculate_school_days(term_obj.start_date, term_obj.end_date)
+        
         is_school_day = active_term is not None and today.weekday() < 5
+
 
         if is_school_day:
             today_attendance = Attendance.objects.filter(
                 enrollment__section=self.object,
                 date=today,
             ).count()
-            context['today_recorded'] = today_attendance >= total_students
+            context['today_recorded'] = total_students > 0 and today_attendance >= total_students
             context['today_present'] = Attendance.objects.filter(
                 enrollment__section=self.object,
                 date=today,
@@ -79,6 +91,8 @@ class SectionDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
         context['active_term'] = active_term
         context['total_students'] = total_students
 
+        
+        
         at_risk_count = 0
         for enrollment in enrollments:
             total = Attendance.objects.filter(
@@ -88,7 +102,7 @@ class SectionDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
                     enrollment=enrollment,
                     status='A',
                 ).count()
-            if total > 0 and (absent / total) * 100 > 20:
+            if total > 0 and (absent / total_school_days) * 100 > 20:
                 at_risk_count += 1
 
         

@@ -1,0 +1,38 @@
+{% extends 'users/base.html' %}
+{% block content %}
+
+<div class="mt-4" style="max-width: 700px;">
+
+    <div class="alert alert-warning">
+        <h5 class="alert-heading">⚠️ Incomplete Attendance — {{ month_label }}</h5>
+        <p>
+            The following <strong>{{ missing_dates|length }} school day(s)</strong>
+            have missing or incomplete attendance records for
+            <strong>{{ section.name }}</strong>.
+        </p>
+        <hr>
+        <ul class="mb-0">
+            {% for d in missing_dates %}
+                <li>{{ d }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <p class="text-muted">
+        You may go back and complete the missing records, or proceed to download
+        the SF2 anyway. Unrecorded days will appear as blank (present) in the file.
+    </p>
+
+    <div class="d-flex gap-2">
+        <a href="{{ confirm_url }}" class="btn btn-warning">
+            Download Anyway
+        </a>
+        <a href="{% url 'section-detail' section.pk %}#attendance"
+           class="btn btn-secondary">
+            ← Go Back and Complete
+        </a>
+    </div>
+
+</div>
+
+{% endblock %}

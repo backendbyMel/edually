@@ -29,16 +29,22 @@ def record_attendance(request, section_pk):
     selected_date = request.GET.get('date', '')
     selected_term = request.GET.get('term', '')
     existing_attendance = {}
+    
+    
 
-    if selected_date:
-        attendances = Attendance.objects.filter(
-            enrollment__section=section,
-            date=selected_date
-        )
-        
-        existing_attendance = {
-            a.enrollment.pk: a for a in attendances
-        }
+    if enrollments:
+        if selected_date:
+            attendances = Attendance.objects.filter(
+                enrollment__section=section,
+                date=selected_date
+            )
+            
+            existing_attendance = {
+                a.enrollment.pk: a for a in attendances
+            }
+    else:
+        messages.error(request, "Cannot record attendance. There are no students currently enrolled in this section")
+        return redirect(reverse('section-detail', kwargs={'pk': section_pk}) + '#attendance')
     
     return render(request, 'attendance/record_attendance.html', {
         'section': section,
@@ -53,7 +59,7 @@ def record_attendance(request, section_pk):
 @login_required
 def update_or_create(request, section_pk):
     section =get_object_or_404(Section, pk=section_pk)
-    current_term = Term.objects.get(is_active=True)
+    current_term = Term.objects.get(is_current=True)
 
     created_count = 0
     updated_count = 0
@@ -172,7 +178,7 @@ def attendance_history(request, section_pk):
             'daily_summary': daily_summary,
             'selected_term': selected_term,
             'selected_date': selected_date,
-            'term_choices': Term.objects.all(),
+            'term_choices': Term.objects.all().order_by('name'),
         }
     )
 
@@ -194,6 +200,15 @@ def delete_attendance_by_date(request, section_pk):
     
     return redirect('attendance-summary', section_pk=section_pk)
 
+def calculate_school_days(start_date, end_date):
+    total_days = 0
+    current_date = start_date
+    while current_date <= end_date:
+        if current_date.weekday() < 5:
+            total_days += 1
+        current_date += timedelta(days=1)
+    return total_days
+
 #summary by student
 @login_required
 def student_attendance_history(request, section_pk):
@@ -207,6 +222,17 @@ def student_attendance_history(request, section_pk):
     # Build summary per student
     student_summaries = []
 
+    total_school_days = 0
+    if selected_term:
+        # Get the specific term dates
+        term_obj = get_object_or_404(Term, pk=selected_term)
+        total_school_days = calculate_school_days(term_obj.start_date, term_obj.end_date)
+    else:
+        total_school_days = 0
+        for term_obj in Term.objects.all():
+            total_school_days += calculate_school_days(term_obj.start_date, term_obj.end_date)
+
+    
     for enrollment in enrollments:
 
         # Base queryset for this student
@@ -214,6 +240,7 @@ def student_attendance_history(request, section_pk):
             enrollment=enrollment
         )
 
+        
         # Apply term filter if selected
         if selected_term:
             attendances = attendances.filter(
@@ -221,6 +248,7 @@ def student_attendance_history(request, section_pk):
             )
 
         # Count each status
+        
         total = attendances.count()
         present = attendances.filter(status='P').count()
         absent = attendances.filter(status='A').count()
@@ -230,7 +258,7 @@ def student_attendance_history(request, section_pk):
         attendance_rate = (present / total * 100) if total > 0 else 0
 
         # Absence rate (absent / total) — DepEd threshold is 20% max allowable absences
-        absence_rate = (absent / total * 100) if total > 0 else 0
+        absence_rate = (absent / total_school_days * 100) if total_school_days > 0 else 0
 
         # At-risk if absences exceed 20% of total school days
         is_at_risk = absence_rate > 20
@@ -258,7 +286,7 @@ def student_attendance_history(request, section_pk):
             'section': section,
             'student_summaries': student_summaries,
             'selected_term': selected_term,
-            'terms': Term.objects.all(),
+            'terms': Term.objects.all().order_by('name'),
         }
     )
 
@@ -282,15 +310,33 @@ def student_attendance_detail(request, section_pk, enrollment_pk):
 
     # Order by date
     attendances = attendances.order_by('date')
+
+    total_school_days = 0
+    if selected_term:
+        # Get the specific term dates
+        term_obj = get_object_or_404(Term, pk=selected_term)
+        total_school_days = calculate_school_days(term_obj.start_date, term_obj.end_date)
+    else:
+        total_school_days = 0
+        for term_obj in Term.objects.all():
+            total_school_days += calculate_school_days(term_obj.start_date, term_obj.end_date)
+    
     total = attendances.count()
     present = attendances.filter(status='P').count()
     absent = attendances.filter(status='A').count()
     late = attendances.filter(status='L').count()
     excused = attendances.filter(status='E').count()
     percentage = round(
-        present / total * 100, 2
-    ) if total > 0 else 0
-    is_at_risk = percentage < 80
+        present / total_school_days * 100, 2
+    ) if total_school_days > 0 else 0
+
+    attendance_rate = (present / total_school_days * 100) if total_school_days > 0 else 0
+    absence_rate = (absent / total_school_days * 100) if total_school_days > 0 else 0
+
+    # At-risk if absences exceed 20% of total school days
+    is_at_risk = absence_rate > 20
+    print(f"\n\n\nHEY I AM HERE.\n\n\n{is_at_risk}\n\n\n")
+    # is_at_risk = percentage > 20
 
     return render(
         request,
@@ -300,7 +346,7 @@ def student_attendance_detail(request, section_pk, enrollment_pk):
             'enrollment': enrollment,
             'attendances': attendances,
             'selected_term': selected_term,
-            'terms': Term.objects.all(),
+            'terms': Term.objects.all().order_by('name'),
             'total': total,
             'present': present,
             'absent': absent,
@@ -362,9 +408,11 @@ def get_term_months():
         return []
 
     terms = Term.objects.filter(
-        start_date__gte=school_year.start_date,
-        end_date__lte=school_year.end_date,
+        school_year=school_year,
     ).order_by('start_date')
+
+    if not terms.exists():
+        return []
 
     months = []
     seen = set()
@@ -421,6 +469,8 @@ def check_missing_attendance(section, year: int, month: int) -> list:
     if not school_days:
         return []
 
+    print("\n\n\nSchool days:", school_days)
+
     # Use the latest recorded date as the boundary instead of today
     # This handles cases where attendance is recorded ahead of the server date
     latest_recorded = Attendance.objects.filter(
@@ -468,15 +518,17 @@ def generate_sf2(request, section_pk: int, month: int, year: int):
     school_year_obj = get_active_school_year()
     if not school_year_obj:
         messages.error(request, "No active school year found. Please set one in the admin.")
-        return redirect('section-detail', pk=section_pk)
+        return redirect(reverse('section-detail', kwargs={'pk': section_pk}) + '#attendance')
 
     # Check missing attendance BEFORE doing anything else
     missing_dates = check_missing_attendance(section, year, month)
-    if missing_dates:
-        return render(request, 'attendance/sf2_missing_dates.html', {
-            'section':       section,
+    confirmed = request.GET.get('confirm') == 'yes'
+    if missing_dates and not confirmed:
+        return render(request, 'attendance/sf2_confirm_download.html', {
+            'section':      section,
             'missing_dates': missing_dates,
-            'month_label':   f"{MONTH_NAMES.get(month)} {year}",
+            'month_label':  f"{month_name} {year}",
+            'confirm_url':  request.path + '?confirm=yes',
         })
 
     # ── Data preparation ───────────────────────────────────────────────────
@@ -497,12 +549,10 @@ def generate_sf2(request, section_pk: int, month: int, year: int):
         enrollment__in=enrollments,
         date__in=school_days,        # only valid term school days
     ).values('enrollment_id', 'date', 'status')
-
+    
     att_map = {}
     for row in all_att:
-        enr_id = row['enrollment_id']
-        key    = row['date'].isoformat()
-        att_map.setdefault(enr_id, {})[key] = row['status']
+        att_map.setdefault(row['enrollment_id'], {})[row['date'].isoformat()] = row['status']
 
     # ── Fill template ──────────────────────────────────────────────────────
     wb = load_workbook(TEMPLATE_PATH)
@@ -517,10 +567,12 @@ def generate_sf2(request, section_pk: int, month: int, year: int):
     ws['AQ9'] = len(school_days)
 
     DATE_START_COL = 7
+    print("\n\nSchool days:", school_days)
+    print("DATE_START_COL:", DATE_START_COL)
     for i, d in enumerate(school_days[:25]):
         ws.cell(row=10, column=DATE_START_COL + i).value = d.day
         ws.cell(row=11, column=DATE_START_COL + i).value = DAY_LETTERS[d.weekday()]
-
+        print(f"  Day {d} → col {DATE_START_COL + i}")
     # Clear leftover date columns beyond actual school days
     for i in range(len(school_days), 25):
         ws.cell(row=10, column=DATE_START_COL + i).value = None
@@ -538,15 +590,16 @@ def generate_sf2(request, section_pk: int, month: int, year: int):
             ws.cell(row=row, column=2).value = name
 
             daily = att_map.get(enrollment.pk, {})
+            print(f"\n\n\nEnrollment {enrollment.pk}: {daily}")
 
             for i, d in enumerate(school_days[:25]):
                 status = daily.get(d.isoformat())
                 if status == 'A':
-                    cell_val = 'x'
+                    cell_val = 'A'
                 elif status == 'L':
-                    cell_val = 'h'
+                    cell_val = 'L'
                 elif status in ('P', 'E'):
-                    cell_val = ''       # blank = present in SF2
+                    cell_val = 'P'      
                 else:
                     cell_val = '?'     # missing record — visible indicator
 
