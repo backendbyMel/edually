@@ -29,10 +29,11 @@ urlpatterns = [
     path('profile/',user_views.profile, name = "profile"),
     path('school_year/', include('schoolYear.urls')),
     path('term/', include('term.urls')),
-    path('', user_views.index, name="home"),
+    path('dashboard/', user_views.dashboard, name="dashboard"),
+    path('', user_views.home, name="home"),
     path('section/', include('sections.urls')),
     path('student/', include('students.urls')),
-    
+    path('coming-soon/',user_views.coming_soon,name='coming-soon'),
     
 ]
 

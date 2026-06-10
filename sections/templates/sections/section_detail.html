@@ -80,7 +80,7 @@
         </div>
       <div id="collapseCard1" class="collapse show">
         <div class="card-body">
-                <a type="submit" class="btn btn-primary" href="{% url 'section-update' object.id %}">Update</a>
+                <a type="submit" class="btn btn-primary" href="{% url 'section-update' object.id %}">Edit</a>
                 <a type="submit" class="btn btn-danger" href="{% url 'section-delete' object.id %}">Delete</a>
                 <h5 class="card-title"></h5>
                 <p class="card-text">Role: <input class="form-check-input" type="checkbox" {% if section.is_subject_teacher %}checked{% endif %} disabled>Subject Teacher</b>
@@ -182,35 +182,33 @@
             </div>
             {% endif %} -->
 
-            <!-- Action Buttons -->
             <div class="d-flex gap-2 mt-3">
                 {% if request.user == section.adviser or request.user.is_superuser %}
-
-<div class="dropdown">
-    <button class="btn btn-success dropdown-toggle"
-            type="button"
-            data-bs-toggle="dropdown"
-            aria-expanded="false">
-        ⬇ Download SF2
-    </button>
-    <ul class="dropdown-menu">
-        {% for m in term_months %}
-        <li>
-            <a class="dropdown-item"
-               href="{% url 'generate-sf2' section.pk m.year m.num %}">
-                {{ m.label }}
-            </a>
-        </li>
-        {% empty %}
-        <li>
-            <span class="dropdown-item text-muted small">
-                No terms configured for the active school year.
-            </span>
-        </li>
-        {% endfor %}
-    </ul>
-</div>
-{% endif %}
+                    <div class="dropdown">
+                        <button class="btn btn-success dropdown-toggle"
+                                type="button"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                            ⬇ Download SF2
+                        </button>
+                        <ul class="dropdown-menu">
+                            {% for m in term_months %}
+                            <li>
+                                <a class="dropdown-item"
+                                href="{% url 'generate-sf2' section.pk m.year m.num %}">
+                                    {{ m.label }}
+                                </a>
+                            </li>
+                            {% empty %}
+                            <li>
+                                <span class="dropdown-item text-muted small">
+                                    No terms configured for the active school year.
+                                </span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
                 <a class="btn btn-primary" 
                    href="{% url 'attendance-record' object.id %}">
                     📋 Record Attendance
@@ -270,6 +268,12 @@
                           <td>
                               <a href="{% url 'subject-update' section.pk subject.id %}" 
                                   class="btn btn-info btn-sm">Edit</a>
+                                  {% if subject.is_handled_by_owner %}
+                                    <a href="{% url 'activity-list' section.pk subject.pk %}"
+                                    class="btn btn-success btn-sm">
+                                        📊 Scores
+                                    </a>
+                                    {% endif %}
                               <a class="btn btn-danger btn-sm" 
                                 data-bs-toggle="modal" 
                                 data-bs-target="#deleteModal"

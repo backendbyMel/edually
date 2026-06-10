@@ -8,6 +8,14 @@ Class_Type = {
     "JHS": "Junior High School",
     "SHS": "Senior High School",
 }
+
+SUBJECT_TYPE_CHOICES = [
+    ('core', 'Core'),
+    ('academic_elective', 'Academic Elective - All Other'),
+    ('academic_field', 'Academic Elective - Field/Exposure/Sports/Arts'),
+    ('techpro_elective', 'TechPro Elective - All Other'),
+    ('techpro_immersion', 'TechPro Elective - Work Immersion'),
+]
 # Create your models here.
 class Section(models.Model):
     adviser = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -30,6 +38,7 @@ class Subject(models.Model):
     section = models.ForeignKey(Section, on_delete=models.CASCADE)
     term = models.ForeignKey(Term, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
+    subject_type = models.CharField(max_length=20,choices=SUBJECT_TYPE_CHOICES,default='core')
     order = models.IntegerField()
     is_handled_by_owner = models.BooleanField(default=False, verbose_name="I am the subject teacher for this",help_text="Check this if you personally teach this subject. \nGrades will be auto-computed from scores you encode. \nLeave unchecked if another teacher handles this subject \nand you will manually input the final grade.")
 

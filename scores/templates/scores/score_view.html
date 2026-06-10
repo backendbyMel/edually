@@ -1,0 +1,253 @@
+{% extends 'users/base.html' %}
+{% load scores_filters %}
+{% block content %}
+
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mt-3">
+    <div>
+        <h4>{{ activity.title }}</h4>
+        <small class="text-muted">
+            {{ subject.name }} — {{ section.name }}
+        </small>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'score-input' section.pk subject.pk activity.pk %}"
+           class="btn btn-primary btn-sm">
+            ✏️ Edit Scores
+        </a>
+        <a href="{% url 'activity-list' section.pk subject.pk %}"
+           class="btn btn-secondary btn-sm">
+            ← Back
+        </a>
+    </div>
+</div>
+
+<!-- Activity Info Card -->
+<div class="card mt-3">
+    <div class="card-body">
+        <div class="row text-center">
+            <div class="col-md-3">
+                <small class="text-muted">Type</small>
+                <p class="mb-0">
+                    {% if activity.activity_type == 'graded' %}
+                        <span class="badge bg-primary">Graded</span>
+                    {% elif activity.activity_type == 'compliance' %}
+                        <span class="badge bg-warning text-dark">
+                            Compliance
+                        </span>
+                    {% else %}
+                        <span class="badge bg-secondary">Recorded</span>
+                    {% endif %}
+                </p>
+            </div>
+            {% if activity.activity_type == 'graded' %}
+            <div class="col-md-3">
+                <small class="text-muted">Component</small>
+                <p class="mb-0">
+                    {{ activity.get_component_display }}
+                </p>
+            </div>
+            <div class="col-md-3">
+                <small class="text-muted">Total Score</small>
+                <p class="mb-0">
+                    <strong>{{ activity.total_score }}</strong>
+                </p>
+            </div>
+            {% endif %}
+            <div class="col-md-3">
+                <small class="text-muted">Date</small>
+                <p class="mb-0">{{ activity.date }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Summary Stats for Graded Activities -->
+{% if activity.activity_type == 'graded' %}
+<div class="row mt-3 text-center">
+    <div class="col-md-3">
+        <div class="card border-primary">
+            <div class="card-body">
+                <h4 class="text-primary">{{ total_scored }}</h4>
+                <small>Scores Recorded</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-success">
+            <div class="card-body">
+                <h4 class="text-success">{{ highest }}</h4>
+                <small>Highest Score</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-danger">
+            <div class="card-body">
+                <h4 class="text-danger">{{ lowest }}</h4>
+                <small>Lowest Score</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-warning">
+            <div class="card-body">
+                <h4 class="text-warning">{{ average }}</h4>
+                <small>Class Average</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Passing Rate -->
+<div class="card mt-3">
+    <div class="card-body">
+        <div class="d-flex justify-content-between mb-1">
+            <small>Passing Rate</small>
+            <small>
+                {{ passing }}/{{ total_scored }} students
+            </small>
+        </div>
+        <div class="progress">
+            <div class="progress-bar bg-success"
+                 style="width: {% if total_scored > 0 %}{{ passing|floatformat:0 }}{% else %}0{% endif %} %">
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Compliance Summary -->
+{% if activity.activity_type == 'compliance' %}
+<div class="row mt-3 text-center">
+    <div class="col-md-4">
+        <div class="card border-success">
+            <div class="card-body">
+                <h4 class="text-success">
+                    {% with complied=score_map.values|length %}
+                        {{ complied }}
+                    {% endwith %}
+                </h4>
+                <small>Complied</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-danger">
+            <div class="card-body">
+                <h4 class="text-danger">
+                    Not Complied
+                </h4>
+                <small>Not Complied</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Students Score Table -->
+<div class="card mt-3">
+    <div class="card-header d-flex justify-content-between">
+        <span>Student Scores</span>
+        <small class="text-muted">
+            {{ enrollments.count }} students
+        </small>
+    </div>
+    <div class="card-body">
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>LRN</th>
+                    <th>Name</th>
+                    <th>Gender</th>
+                    {% if activity.activity_type == 'graded' %}
+                    <th>
+                        Score
+                        <small class="text-muted">
+                            /{{ activity.total_score }}
+                        </small>
+                    </th>
+                    <th>Percentage</th>
+                    {% elif activity.activity_type == 'compliance' %}
+                    <th>Complied?</th>
+                    {% endif %}
+                    <th>Remarks</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for enrollment in enrollments %}
+                {% with existing=score_map|get_item:enrollment.pk %}
+                <tr class="
+                    {% if activity.activity_type == 'graded' %}
+                        {% if existing.score %}
+                            {% if existing.score >= activity.total_score|floatformat:0 %}
+                                table-success
+                            {% endif %}
+                        {% else %}
+                            table-warning
+                        {% endif %}
+                    {% elif activity.activity_type == 'compliance' %}
+                        {% if existing.is_complied == False %}
+                            table-danger
+                        {% endif %}
+                    {% endif %}">
+
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ enrollment.student.lrn }}</td>
+                    <td>
+                        {{ enrollment.student.last_name }},
+                        {{ enrollment.student.first_name }}
+                    </td>
+                    <td>
+                        {{ enrollment.student.get_gender_display }}
+                    </td>
+
+                    {% if activity.activity_type == 'graded' %}
+                    <td>
+                        {% if existing.score %}
+                            {{ existing.score }}
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if existing.score and activity.total_score %}
+                            {% widthratio existing.score activity.total_score 100 %}%
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+
+                    {% elif activity.activity_type == 'compliance' %}
+                    <td>
+                        {% if existing %}
+                            {% if existing.is_complied %}
+                                <span class="text-success">✅ Yes</span>
+                            {% else %}
+                                <span class="text-danger">❌ No</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    {% endif %}
+
+                    <td>
+                        {{ existing.remarks|default:'—' }}
+                    </td>
+                </tr>
+                {% endwith %}
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center text-muted">
+                        No students enrolled yet.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

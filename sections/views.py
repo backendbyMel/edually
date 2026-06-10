@@ -172,7 +172,7 @@ class SectionDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 
 class SubjectCreateView(LoginRequiredMixin, CreateView):
     model = Subject
-    fields = ['name','term','order','is_handled_by_owner']
+    fields = ['name','subject_type','term','order','is_handled_by_owner']
     template_name = 'sections/subject_create.html'
     
     def get_success_url(self):
@@ -188,7 +188,7 @@ class SubjectCreateView(LoginRequiredMixin, CreateView):
 
 class SubjectUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Subject
-    fields = ['name','term','order','is_handled_by_owner']
+    fields = ['name','subject_type','term','order','is_handled_by_owner']
     template_name = 'sections/subject_update.html'
     
     def get_success_url(self):

@@ -1,0 +1,180 @@
+{% extends 'users/base.html' %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mt-3">
+    <div>
+        {% if is_update %}
+        <h4>Edit Activity</h4>
+        {% else %}
+        <h4>Add Activity</h4>
+        {% endif %}
+        <small class="text-muted">
+            {{ subject.name }} — {{ section.name }}
+        </small>
+    </div>
+    <a href="{% url 'activity-list' section.pk subject.pk %}"
+       class="btn btn-secondary btn-sm">
+        ← Back
+    </a>
+</div>
+
+<div class="card mt-3">
+    <div class="card-body">
+        <form method="POST">
+            {% csrf_token %}
+
+            {% if form.errors %}
+    <div class="alert alert-danger">
+        {{ form.errors }}
+    </div>
+    {% endif %}
+            <!-- Title -->
+            <div class="mb-3">
+                <label class="form-label">
+                    Title <span class="text-danger">*</span>
+                </label>
+                <input type="text"
+                       name="title"
+                       class="form-control w-50"
+                       value="{{ form.title.value|default:'' }}"
+                       required>
+                {% if form.title.errors %}
+                <small class="text-danger">
+                    {{ form.title.errors }}
+                </small>
+                {% endif %}
+            </div>
+
+            <!-- Description -->
+            <div class="mb-3">
+                <label class="form-label">Description</label>
+                <textarea name="description"
+                          class="form-control w-50"
+                          rows="3"
+                          placeholder="Optional">{{ form.description.value|default:'' }}</textarea>
+            </div>
+
+            <!-- Activity Type -->
+            <div class="mb-3">
+                <label class="form-label">
+                    Activity Type <span class="text-danger">*</span>
+                </label>
+                <select name="activity_type"
+                        class="form-select w-25"
+                        id="activityType"
+                        required>
+                    <option value="">Select Type</option>
+                    <option value="graded"
+                        {% if form.activity_type.value == 'graded' %}
+                            selected
+                        {% endif %}>
+                        Graded Activity
+                    </option>
+                    <option value="compliance"
+                        {% if form.activity_type.value == 'compliance' %}
+                            selected
+                        {% endif %}>
+                        Compliance Check
+                    </option>
+                    <option value="recorded"
+                        {% if form.activity_type.value == 'recorded' %}
+                            selected
+                        {% endif %}>
+                        Recorded Only
+                    </option>
+                </select>
+            </div>
+
+            <!-- Graded Fields (show only if graded) -->
+            <div id="gradedFields">
+
+                <!-- Component -->
+                <div class="mb-3">
+                    <label class="form-label">
+                        Component <span class="text-danger">*</span>
+                    </label>
+                    <select name="component"
+                            class="form-select w-25">
+                        <option value="">Select Component</option>
+                        <option value="WW"
+                            {% if form.component.value == 'WW' %}
+                                selected
+                            {% endif %}>
+                            Written Works
+                        </option>
+                        <option value="PT"
+                            {% if form.component.value == 'PT' %}
+                                selected
+                            {% endif %}>
+                            Performance Tasks
+                        </option>
+                        <option value="TE"
+                            {% if form.component.value == 'TE' %}
+                                selected
+                            {% endif %}>
+                            Term Exam
+                        </option>
+                    </select>
+                </div>
+
+                <!-- Total Score -->
+                <div class="mb-3">
+                    <label class="form-label">
+                        Total Score <span class="text-danger">*</span>
+                    </label>
+                    <input type="number"
+                           name="total_score"
+                           class="form-control w-25"
+                           min="1"
+                           value="{{ form.total_score.value|default:'' }}">
+                </div>
+
+            </div>
+
+            <!-- Date -->
+            <div class="mb-3">
+                <label class="form-label">
+                    Date <span class="text-danger">*</span>
+                </label>
+                <input type="date"
+                    name="date"
+                    class="form-control w-25"
+                    value="{{ form.date.value|date:'Y-m-d' }}"
+                    required>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                {% if is_update %}Update{% else %}Save{% endif %}
+            </button>
+            <a href="{% url 'activity-list' section.pk subject.pk %}"
+               class="btn btn-secondary">
+                Cancel
+            </a>
+
+        </form>
+    </div>
+</div>
+
+<!-- Show/Hide Graded Fields Script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const activityType = document.getElementById('activityType')
+    const gradedFields = document.getElementById('gradedFields')
+
+    function toggleGradedFields() {
+        if (activityType.value === 'graded') {
+            gradedFields.style.display = 'block'
+        } else {
+            gradedFields.style.display = 'none'
+        }
+    }
+
+    // Run on page load
+    toggleGradedFields()
+
+    // Run on change
+    activityType.addEventListener('change', toggleGradedFields)
+})
+</script>
+
+{% endblock %}

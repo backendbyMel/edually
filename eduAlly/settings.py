@@ -32,6 +32,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'scores.apps.ScoresConfig',
     'term.apps.TermConfig',
     'attendance.apps.AttendanceConfig',
     'enrollment.apps.EnrollmentConfig',

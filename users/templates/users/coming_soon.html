@@ -1,0 +1,62 @@
+{% extends 'users/base.html' %}
+{% block content %}
+
+<div class="d-flex justify-content-center align-items-center"
+     style="min-height: 70vh;">
+    <div class="text-center">
+
+        <!-- Animated Icon -->
+        <div class="mb-4" style="font-size: 80px;">
+            🚀
+        </div>
+
+        <!-- Title -->
+        <h2 class="fw-bold mb-3">Coming Soon!</h2>
+
+        <!-- Message -->
+        <p class="text-muted mb-4" style="max-width: 500px; margin: 0 auto;">
+            This feature is currently under development 
+            and is expected to be available 
+            <strong>before the end of Term 1.</strong>
+            Thank you for your patience as we work 
+            to make it better for you.
+        </p>
+
+        <!-- Feature Name if passed -->
+        {% if feature_name %}
+        <div class="alert alert-info d-inline-block mb-4">
+            🔧 Feature in development: 
+            <strong>{{ feature_name }}</strong>
+        </div>
+        {% endif %}
+
+        <!-- Progress Indicator -->
+        <div class="mb-4" style="max-width: 400px; margin: 0 auto;">
+            <div class="d-flex justify-content-between mb-1">
+                <small class="text-muted">Development Progress</small>
+                <small class="text-muted">
+                    {% if progress %}
+                        {{ progress }}%
+                    {% else %}
+                        In Progress
+                    {% endif %}
+                </small>
+            </div>
+            <div class="progress">
+                <div class="progress-bar progress-bar-striped 
+                            progress-bar-animated bg-primary"
+                     style="width: {% if progress %}{{ progress }}{% else %}60{% endif %}%">
+                </div>
+            </div>
+        </div>
+
+        <!-- Back Button -->
+        <a href="{% url 'dashboard' %}"
+           class="btn btn-primary">
+            ← Back to Dashboard
+        </a>
+
+    </div>
+</div>
+
+{% endblock %}

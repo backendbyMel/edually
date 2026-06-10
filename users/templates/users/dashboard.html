@@ -1,0 +1,114 @@
+{% extends 'users/base.html' %}
+{% block content %}
+
+<!-- Welcome Header -->
+<div class="d-flex justify-content-between mt-3">
+    <div>
+        <h4>Welcome, {{ user.first_name }}!</h4>
+        <small class="text-muted">{{ today|date:"l, F d, Y" }}</small>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="row mt-3 text-center">
+    <div class="col-md-3">
+        <div class="card border-primary">
+            <div class="card-body">
+                <h3 class="text-primary">{{ total_sections }}</h3>
+                <small>My Sections</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-success">
+            <div class="card-body">
+                <h3 class="text-success">{{ total_students }}</h3>
+                <small>Total Students</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-warning">
+            <div class="card-body">
+                <h3 class="text-warning">
+                    {{ alerts|length }}
+                </h3>
+                <small>Active Alerts</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-info">
+            <div class="card-body">
+                <h3 class="text-info">{{ active_term }}</h3>
+                <small>Active Term</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Smart Alerts -->
+<div class="card mt-3">
+    <div class="card-header d-flex justify-content-between">
+        <span>🔔 Smart Alerts</span>
+        <span class="badge bg-danger">
+            {{ alerts|length }} alerts
+        </span>
+    </div>
+    <div class="card-body">
+        {% if alerts %}
+            {% for alert in alerts %}
+            <div class="alert alert-{{ alert.type }} 
+                        d-flex justify-content-between 
+                        align-items-center mb-2">
+                <span>{{ alert.message }}</span>
+                <a href="{{ alert.url }}"
+                   class="btn btn-sm btn-{{ alert.type }}">
+                    Fix Now →
+                </a>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="alert alert-success">
+                ✅ Everything is up to date. 
+                No alerts at this time.
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- My Sections Quick View -->
+<div class="card mt-3">
+    <div class="card-header">My Sections</div>
+    <div class="card-body">
+        <div class="row">
+            {% for section in sections %}
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h6>{{ section.name }}</h6>
+                        <small class="text-muted">
+                            {{ section.school_year }}
+                        </small>
+                        <div class="mt-2">
+                            <a href="{% url 'section-detail' section.pk %}"
+                               class="btn btn-primary btn-sm">
+                                View
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-muted">
+                No sections yet. 
+                <a href="{% url 'section-create' %}">
+                    Create one now
+                </a>
+            </p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

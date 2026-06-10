@@ -10,8 +10,12 @@
           <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
         </svg>
       </div>
-      <span class="cs-brand-name">My Dashboard</span>
+      <span class="cs-brand-name"><a class="navbar-brand d-flex align-items-center" href="/">
+        <img src="/media/logo.png" alt="Logo" class="me-2" style="height: 150px; width: auto;">
+      </a></span>
+      
     </div>
+    
     <button class="cs-toggle-btn" id="cs-toggle" type="button" aria-label="Toggle sidebar">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
         <rect x="3" y="3" width="18" height="18" rx="2"/>
@@ -19,12 +23,34 @@
         <path class="cs-arrow" d="M15 9l-3 3 3 3"/>
       </svg>
     </button>
+    
   </div>
-
+<div>
+      
+    </div>
   <!-- Nav -->
   <nav class="cs-nav">
     <div class="cs-section-label">MY DASHBOARD</div>
+    
     <ul>
+      <li>
+          <a class="cs-link 
+              {% if request.resolver_match.url_name == 'dashboard' %}
+                  active
+              {% endif %}"
+            href="{% url 'dashboard' %}">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-speedometer2" viewBox="0 0 16 16">
+              <path d="M8 4a.5.5 0 0 1 .5.5V6a.5.5 0 0 1-1 0V4.5A.5.5 0 0 1 8 4M3.732 5.732a.5.5 0 0 1 .707 0l.915.914a.5.5 0 1 1-.708.708l-.914-.915a.5.5 0 0 1 0-.707M2 10a.5.5 0 0 1 .5-.5h1.586a.5.5 0 0 1 0 1H2.5A.5.5 0 0 1 2 10m9.5-.5a.5.5 0 0 1 0-1h1.586a.5.5 0 0 1 0 1zm-1.914-2.854a.5.5 0 1 1 .708-.708l.914.915a.5.5 0 1 1-.708.708zM8 10a2 2 0 1 1 0-4 2 2 0 0 1 0 4M6.5 8a1.5 1.5 0 1 0 3 0 1.5 1.5 0 0 0-3 0"/>
+              <path d="M0 10a8 8 0 1 1 15.547 2.661c-.442 1.253-1.845 1.602-2.932 1.25C11.309 13.488 9.475 13 8 13c-1.474 0-3.31.488-4.615.911-1.087.352-2.49.003-2.932-1.25A8 8 0 0 1 0 10m8-7a7 7 0 0 0-6.603 9.329c.203.575.923.876 1.68.63C4.397 12.533 6.358 12 8 12s3.604.532 4.923.96c.757.245 1.477-.056 1.68-.631A7 7 0 0 0 8 3"/>
+            </svg>
+              <span class="cs-label">
+                  Home
+                  {% if alert_count > 0 %}
+                  <span class="cs-badge">{{ alert_count }}</span>
+                  {% endif %}
+              </span>
+          </a>
+      </li>
       <li>
         <a class="cs-link {% if request.resolver_match.url_name == 'section-home' %}active{% endif %}"
            href="{% url 'section-home' %}">
@@ -61,31 +87,21 @@
       </li>
     </ul>
 
-    <div class="cs-section-label">MANAGEMENT</div>
+    <div class="cs-section-label">REPORTS</div>
     <ul>
       <li>
-        <a class="cs-link" href="#">
-          <svg class="cs-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
-          </svg>
-          <span class="cs-label">Subjects</span>
-          <span class="cs-tip">Subjects</span>
-        </a>
-      </li>
-      <li>
-        <a class="cs-link" href="#">
+        <a class="cs-link" href="{% url 'coming-soon' %}?feature=School Forms&progress=45">
           <svg class="cs-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
             <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
             <line x1="3" y1="10" x2="21" y2="10"/>
           </svg>
-          <span class="cs-label">Schedule</span>
-          <span class="cs-tip">Schedule</span>
+          <span class="cs-label">School Forms</span>
+          <span class="cs-tip">School Forms</span>
         </a>
       </li>
       <li>
-        <a class="cs-link" href="#">
+        <a class="cs-link" href="{% url 'coming-soon' %}?feature=Analytics&progress=30">
           <svg class="cs-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <line x1="18" y1="20" x2="18" y2="10"/>
             <line x1="12" y1="20" x2="12" y2="4"/>

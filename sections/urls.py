@@ -11,6 +11,7 @@ from .views import (SectionListView,
 urlpatterns = [
     path('detail/<int:section_pk>/', include('enrollment.urls')),
     path('detail/<int:section_pk>/attendance/',include('attendance.urls')),
+    path('detail/<int:section_pk>/',include('scores.urls')),
     path('', SectionListView.as_view(),name='section-home'),
     path('detail/<int:pk>', SectionDetailView.as_view(),name='section-detail'),
     path('detail/<int:pk>/update', SectionUpdateView.as_view(),name='section-update'),
