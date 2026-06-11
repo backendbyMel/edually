@@ -15,6 +15,7 @@ class SectionListView(LoginRequiredMixin, ListView):
     model = Section
     template_name = 'sections/section_home.html'
     context_object_name = 'sections'
+    paginate_by = 8
 
     def get_queryset(self):
         return Section.objects.filter(adviser=self.request.user)
@@ -117,7 +118,7 @@ class SectionDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
 
 class SectionCreateView(LoginRequiredMixin, CreateView):
     model = Section
-    fields = ['name','grade_level','class_type','is_adviser','is_subject_teacher','principal_name','school_year']
+    fields = ['name','grade_level','class_type','is_adviser','is_subject_teacher','school_name','school_id','principal_name','school_year']
     template_name = 'sections/section_create.html'
     success_url = reverse_lazy('section-home') 
     
@@ -127,7 +128,7 @@ class SectionCreateView(LoginRequiredMixin, CreateView):
 
 class SectionUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Section
-    fields = ['name','grade_level','class_type','is_adviser','is_subject_teacher','principal_name','school_year']
+    fields = ['name','grade_level','class_type','is_adviser','is_subject_teacher','school_name','school_id','principal_name','school_year']
     template_name = 'sections/section_update.html'
     
     def form_valid(self, form):

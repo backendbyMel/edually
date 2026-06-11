@@ -1,7 +1,7 @@
 {% extends "users/base.html" %}
 {% load crispy_forms_tags %}
 {% block content %}
-	<div class="content-section">
+	<div class="container mt-5" style="max-width:480px;">
 		<form method="POST">
 			{% csrf_token %}
 			<fieldset class="form-group">
@@ -14,6 +14,17 @@
 		</form>
 		<div class="border-top pt-3">
 			<small class="text-muted">Already Have An Account? <a class="ml-2" href="#"></a></small>
+		</div>
+		<div class="d-flex justify-content-between mt-2"
+		style="font-size:0.82rem;">
+			<a href="{% url 'forgot-username' %}"
+			class="text-decoration-none text-secondary">
+				Forgot username?
+			</a>
+			<a href="{% url 'password-reset' %}"
+			class="text-decoration-none text-secondary">
+				Forgot password?
+			</a>
 		</div>
 	</div>
 {% endblock content %}

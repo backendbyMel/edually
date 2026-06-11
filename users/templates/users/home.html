@@ -2,34 +2,793 @@
 {% load static %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row align-items-center min-vh-75">
-        <div class="col-md-6">
-            <img src="/media/logo_png/logo.png"
-                 alt="EduAlly Logo"
-                 class="mb-4"
-                 style="height: 80px; width: auto;">
-
-            <h1 class="display-5 fw-bold">Welcome to EduAlly</h1>
-            <p class="lead text-muted">
-                Your learning support platform for students, parents, and educators.
-            </p>
-
-            {% if not user.is_authenticated %}
-                <div class="d-flex gap-2 mt-4">
-                    <a href="{% url 'register' %}" class="btn btn-primary btn-lg">
-                        Register
-                    </a>
-                    <a href="{% url 'login' %}" class="btn btn-outline-primary btn-lg">
-                        Login
-                    </a>
-                </div>
-            {% else %}
-                <a href="{% url 'dashboard' %}" class="btn btn-primary btn-lg mt-4">
-                    Go to Dashboard
-                </a>
-            {% endif %}
+<style>
+    /* ── BRAND TOKENS ── */
+    :root {
+        --leaf:       #1a7a4a;
+        --leaf-mid:   #22a060;
+        --leaf-light: #e6f5ed;
+        --gold:       #e8a020;
+        --gold-light: #fef6e4;
+        --ink:        #1a1f2e;
+        --ink-soft:   #4a5568;
+        --ink-muted:  #8a97aa;
+        --border:     #e2e8f0;
+    }
+ 
+    /* ── TYPOGRAPHY ── */
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Lora:ital,wght@0,400;0,600;1,400&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; color: var(--ink); }
+    .font-lora { font-family: 'Lora', serif; }
+ 
+    /* ── CUSTOM NAV ── */
+    .landing-nav {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: rgba(255,255,255,0.92);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border);
+    }
+    .nav-brand-icon {
+        width: 34px; height: 34px;
+        background: var(--leaf);
+        border-radius: 8px;
+        display: grid;
+        place-items: center;
+        font-size: 16px;
+    }
+ 
+    /* ── BUTTONS ── */
+    .btn-leaf {
+        background: var(--leaf);
+        color: white;
+        border: none;
+        font-weight: 700;
+        transition: background 0.15s, transform 0.1s;
+    }
+    .btn-leaf:hover { background: #155f3a; color: white; transform: translateY(-1px); }
+    .btn-outline-ink {
+        border: 1.5px solid var(--border);
+        color: var(--ink-soft);
+        font-weight: 600;
+        background: transparent;
+    }
+    .btn-outline-ink:hover { border-color: var(--ink); color: var(--ink); }
+ 
+    /* ── HERO ── */
+    .hero-section {
+        background: linear-gradient(180deg, #f0f9f4 0%, #ffffff 100%);
+    }
+    .hero-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--gold-light);
+        color: var(--gold);
+        border: 1px solid #f0d080;
+        border-radius: 99px;
+        padding: 4px 14px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+    .hero-trust-avatars span {
+        width: 28px; height: 28px;
+        border-radius: 50%;
+        border: 2px solid white;
+        background: var(--leaf-light);
+        display: inline-grid;
+        place-items: center;
+        font-size: 12px;
+        margin-right: -8px;
+    }
+ 
+    /* ── HERO CARD MOCKUP ── */
+    .hero-card {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.04);
+        position: relative;
+    }
+    .float-badge {
+        position: absolute;
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 8px 14px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+        font-size: 0.78rem;
+        font-weight: 600;
+        white-space: nowrap;
+        z-index: 10;
+    }
+    .float-badge.top-left { top: -16px; left: -20px; }
+    .float-badge.bottom-right { bottom: -16px; right: -10px; }
+    .hero-stat-card {
+        background: #f7f8fa;
+        border-radius: 12px;
+        padding: 12px;
+        text-align: center;
+    }
+    .hero-alert-box {
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-size: 0.78rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .hero-alert-warning {
+        background: #fff8e6;
+        border: 1px solid #f0d080;
+        color: #7a5500;
+    }
+    .hero-alert-success {
+        background: var(--leaf-light);
+        border: 1px solid #9fd4b8;
+        color: #0e5a33;
+    }
+    .hero-student-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--border);
+        font-size: 0.82rem;
+    }
+    .hero-student-row:last-child { border-bottom: none; }
+ 
+    /* ── SECTION LABELS ── */
+    .section-eyebrow {
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--leaf);
+    }
+ 
+    /* ── PAIN SECTION ── */
+    .pain-section { background: var(--ink); }
+    .pain-card {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 12px;
+        height: 100%;
+    }
+ 
+    /* ── FEATURE CARDS ── */
+    .feature-card {
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        height: 100%;
+        transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .feature-card:hover {
+        box-shadow: 0 12px 40px rgba(0,0,0,0.07);
+        transform: translateY(-2px);
+    }
+    .feature-card.highlight {
+        border-color: var(--leaf);
+        background: var(--leaf-light);
+    }
+    .feature-icon {
+        width: 48px; height: 48px;
+        border-radius: 12px;
+        background: var(--leaf-light);
+        display: grid;
+        place-items: center;
+        font-size: 22px;
+    }
+    .feature-card.highlight .feature-icon { background: white; }
+    .feature-tag {
+        background: var(--leaf);
+        color: white;
+        border-radius: 99px;
+        padding: 2px 10px;
+        font-size: 0.68rem;
+        font-weight: 700;
+    }
+ 
+    /* ── HOW IT WORKS ── */
+    .how-section { background: #f7f8fa; }
+    .how-step-num {
+        width: 52px; height: 52px;
+        border-radius: 50%;
+        background: var(--leaf);
+        color: white;
+        font-size: 1.1rem;
+        font-weight: 800;
+        display: grid;
+        place-items: center;
+        margin: 0 auto 16px;
+    }
+ 
+    /* ── PRICING ── */
+    .pricing-card {
+        border: 1.5px solid var(--border);
+        border-radius: 20px;
+        height: 100%;
+    }
+    .pricing-card.featured {
+        border-color: var(--leaf);
+        box-shadow: 0 16px 48px rgba(26,122,74,0.12);
+        position: relative;
+    }
+    .pricing-popular {
+        position: absolute;
+        top: -14px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--leaf);
+        color: white;
+        border-radius: 99px;
+        padding: 4px 18px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+    .pricing-amount {
+        font-size: 3rem;
+        font-weight: 800;
+        line-height: 1;
+        color: var(--ink);
+    }
+    .pricing-currency {
+        font-size: 1.2rem;
+        font-weight: 700;
+        vertical-align: top;
+        margin-top: 6px;
+        display: inline-block;
+        color: var(--ink-soft);
+    }
+    .pricing-check { color: var(--leaf); }
+    .pricing-cross { color: var(--ink-muted); }
+ 
+    /* ── TESTIMONIALS ── */
+    .testi-section { background: #f7f8fa; }
+    .testi-card {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        height: 100%;
+    }
+    .testi-avatar {
+        width: 42px; height: 42px;
+        border-radius: 50%;
+        background: var(--leaf-light);
+        display: grid;
+        place-items: center;
+        font-size: 20px;
+        flex-shrink: 0;
+    }
+    .testi-stars { color: var(--gold); }
+ 
+    /* ── FOOTER ── */
+    .landing-footer { background: var(--ink); }
+ 
+    /* ── BADGES ── */
+    .badge-leaf {
+        background: var(--leaf-light);
+        color: var(--leaf);
+        border-radius: 99px;
+        padding: 3px 10px;
+        font-size: 0.7rem;
+        font-weight: 700;
+    }
+    .badge-danger-soft {
+        background: #fdeaea;
+        color: #d94040;
+        border-radius: 99px;
+        padding: 3px 10px;
+        font-size: 0.7rem;
+        font-weight: 700;
+    }
+    .badge-gold-soft {
+        background: var(--gold-light);
+        color: var(--gold);
+        border-radius: 99px;
+        padding: 3px 10px;
+        font-size: 0.7rem;
+        font-weight: 700;
+    }
+ 
+    @media (max-width: 768px) {
+        .hero-visual { display: none; }
+        .float-badge { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        * { transition: none !important; }
+    }
+</style>
+ 
+<!-- ── NAV ── -->
+<nav class="landing-nav py-2 px-4 px-lg-5">
+    <div class="d-flex align-items-center justify-content-between">
+        <a href="#" class="text-decoration-none d-flex align-items-center gap-2 fw-bold text-dark">
+            <div class="nav-brand-icon">📚</div>
+            EduAlly
+        </a>
+        <div class="d-none d-md-flex align-items-center gap-2">
+            <a href="#features" class="text-decoration-none text-secondary fw-500 px-3 py-2 rounded-3 hover-bg">Features</a>
+            <a href="#how" class="text-decoration-none text-secondary fw-500 px-3 py-2 rounded-3">How it works</a>
+            <a href="#pricing" class="text-decoration-none text-secondary fw-500 px-3 py-2 rounded-3">Pricing</a>
+            <a href="{% url 'login' %}" class="text-decoration-none text-secondary fw-500 px-3 py-2 rounded-3">Log in</a>
+            <a href="https://www.facebook.com/profile.php?id=61584252110866" target="_blank" class="btn btn-leaf px-4 py-2 rounded-3">Get Started Free</a>
+        </div>
+        <!-- Mobile toggle -->
+        <button class="btn d-md-none" type="button" data-bs-toggle="collapse" data-bs-target="#mobileNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </div>
+    <div class="collapse d-md-none" id="mobileNav">
+        <div class="d-flex flex-column gap-1 pt-3 pb-2">
+            <a href="#features" class="text-decoration-none text-secondary py-2">Features</a>
+            <a href="#how" class="text-decoration-none text-secondary py-2">How it works</a>
+            <a href="#pricing" class="text-decoration-none text-secondary py-2">Pricing</a>
+            <a href="{% url 'login' %}" class="text-decoration-none text-secondary py-2">Log in</a>
+            <a href="https://www.facebook.com/profile.php?id=61584252110866" target="_blank" class="btn btn-leaf py-2 mt-1">Get Started Free</a>
         </div>
     </div>
-</div>
+</nav>
+ 
+<!-- ── HERO ── -->
+<section class="hero-section py-5">
+    <div class="container py-4">
+        <div class="row align-items-center g-5">
+ 
+            <!-- Left: Copy -->
+            <div class="col-lg-6">
+                <div class="hero-eyebrow mb-3">
+                    🎉 Free for the entire first year
+                </div>
+                <h1 class="font-lora fw-semibold mb-3" style="font-size:clamp(2rem,3.5vw,3rem);line-height:1.2;color:var(--ink);">
+                    The class record<br>
+                    <em style="color:var(--leaf);">built for Filipino teachers</em>
+                </h1>
+                <p class="text-secondary mb-4" style="font-size:1.05rem;line-height:1.7;max-width:480px;">
+                    Stop spending hours on attendance sheets, grade computations,
+                    and DepEd forms. EduAlly handles the paperwork so you can
+                    focus on your students.
+                </p>
+                <div class="d-flex flex-wrap gap-3 mb-4">
+                    <a href="https://www.facebook.com/profile.php?id=61584252110866" target="_blank" class="btn btn-leaf px-4 py-3 rounded-3 fs-6">
+                        🚀 Start for Free
+                    </a>
+                    <a href="#features" class="btn btn-outline-ink px-4 py-3 rounded-3 fs-6">
+                        See how it works →
+                    </a>
+                </div>
+                <div class="d-flex align-items-center gap-2" style="font-size:0.82rem;color:var(--ink-muted);">
+                    <div class="d-flex">
+                        <span class="hero-trust-avatars">
+                            <span>👩</span><span>👨</span><span>👩</span><span>👨</span>
+                        </span>
+                    </div>
+                    <span class="ms-2">Trusted by teachers across Western Visayas</span>
+                </div>
+            </div>
+ 
+            <!-- Right: Mockup Card -->
+            <div class="col-lg-6 hero-visual">
+                <div class="position-relative mx-auto" style="max-width:440px;">
+                    <div class="float-badge top-left">✅ SF2 ready to download</div>
+ 
+                    <div class="hero-card">
+                        <!-- Card Header -->
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <div class="fw-bold" style="font-size:0.9rem;">Grade 7 — Mabini</div>
+                                <div style="font-size:0.75rem;color:var(--ink-muted);">Term 1 · Mathematics</div>
+                            </div>
+                            <span class="badge-leaf">Active</span>
+                        </div>
+ 
+                        <!-- Stats -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-4">
+                                <div class="hero-stat-card">
+                                    <div class="fw-800" style="font-size:1.5rem;color:var(--leaf);font-weight:800;">32</div>
+                                    <div style="font-size:0.7rem;color:var(--ink-muted);">Enrolled</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="hero-stat-card">
+                                    <div class="fw-800" style="font-size:1.5rem;color:#d94040;font-weight:800;">3</div>
+                                    <div style="font-size:0.7rem;color:var(--ink-muted);">At-Risk</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="hero-stat-card">
+                                    <div class="fw-800" style="font-size:1.5rem;color:var(--gold);font-weight:800;">91%</div>
+                                    <div style="font-size:0.7rem;color:var(--ink-muted);">Avg Grade</div>
+                                </div>
+                            </div>
+                        </div>
+ 
+                        <!-- Alerts -->
+                        <div class="hero-alert-box hero-alert-warning mb-2">
+                            ⚠️ 2 students below 75 — intervention needed
+                        </div>
+                        <div class="hero-alert-box hero-alert-success mb-3">
+                            ✅ Attendance recorded for today
+                        </div>
+ 
+                        <!-- Top Students -->
+                        <div>
+                            <div class="mb-2" style="font-size:0.72rem;font-weight:700;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.06em;">
+                                Top Students
+                            </div>
+                            <div class="hero-student-row">
+                                <span style="font-weight:500;">🥇 Dela Cruz, Juan</span>
+                                <span style="font-weight:700;color:var(--leaf);">98</span>
+                            </div>
+                            <div class="hero-student-row">
+                                <span style="font-weight:500;">🥈 Reyes, Maria</span>
+                                <span style="font-weight:700;color:var(--leaf);">95</span>
+                            </div>
+                            <div class="hero-student-row">
+                                <span style="font-weight:500;">🥉 Santos, Ana</span>
+                                <span style="font-weight:700;color:var(--leaf);">93</span>
+                            </div>
+                        </div>
+                    </div>
+ 
+                    <div class="float-badge bottom-right">📊 Grades auto-computed</div>
+                </div>
+            </div>
+ 
+        </div>
+    </div>
+</section>
+ 
+<!-- ── PAIN POINTS ── -->
+<section class="pain-section py-5">
+    <div class="container py-4">
+        <div class="section-eyebrow mb-2" style="color:#4ade80;">The problem</div>
+        <h2 class="font-lora fw-semibold text-white mb-5" style="font-size:clamp(1.6rem,2.5vw,2.2rem);max-width:580px;">
+            Teachers spend too much time on paperwork, not on students.
+        </h2>
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="pain-card p-4">
+                    <div class="fs-3 mb-3">📋</div>
+                    <h3 class="text-white fw-bold mb-2" style="font-size:0.95rem;">Manual class records</h3>
+                    <p class="mb-0" style="font-size:0.85rem;color:rgba(255,255,255,0.55);line-height:1.6;">
+                        Hours spent writing attendance, computing grades by hand, and filling up the same forms every quarter.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="pain-card p-4">
+                    <div class="fs-3 mb-3">😰</div>
+                    <h3 class="text-white fw-bold mb-2" style="font-size:0.95rem;">Grade computation errors</h3>
+                    <p class="mb-0" style="font-size:0.85rem;color:rgba(255,255,255,0.55);line-height:1.6;">
+                        Manual WW/PT/QA computation with different weights per subject type leads to mistakes that affect students.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="pain-card p-4">
+                    <div class="fs-3 mb-3">📂</div>
+                    <h3 class="text-white fw-bold mb-2" style="font-size:0.95rem;">School forms take forever</h3>
+                    <p class="mb-0" style="font-size:0.85rem;color:rgba(255,255,255,0.55);line-height:1.6;">
+                        SF1, SF2, SF9, SF10 — each one takes hours to fill manually. A complaint or audit makes it even worse.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="pain-card p-4">
+                    <div class="fs-3 mb-3">🚨</div>
+                    <h3 class="text-white fw-bold mb-2" style="font-size:0.95rem;">No early warning system</h3>
+                    <p class="mb-0" style="font-size:0.85rem;color:rgba(255,255,255,0.55);line-height:1.6;">
+                        By the time you notice a student is failing or always absent, it is often too late to intervene.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+ 
+<!-- ── FEATURES ── -->
+<section class="py-5" id="features">
+    <div class="container py-4">
+        <div class="text-center mb-5">
+            <div class="section-eyebrow mb-2">What EduAlly does</div>
+            <h2 class="font-lora fw-semibold mb-3" style="font-size:clamp(1.6rem,2.5vw,2.2rem);color:var(--ink);">
+                Everything a DepEd teacher actually needs
+            </h2>
+            <p class="text-secondary mx-auto" style="max-width:520px;">
+                Built around the real workflows of Filipino public school teachers — not generic school software.
+            </p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card highlight p-4">
+                    <div class="feature-icon mb-3">📊</div>
+                    <h3 class="fw-bold mb-2" style="font-size:1rem;">Smart Grade Computation</h3>
+                    <p class="text-secondary mb-3" style="font-size:0.85rem;line-height:1.6;">
+                        Automatically computes WW, PT, and QA grades using the correct DepEd weights for Core, Academic Elective, TechPro, and Work Immersion subjects.
+                    </p>
+                    <span class="feature-tag">DepEd Aligned</span>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card p-4">
+                    <div class="feature-icon mb-3">✅</div>
+                    <h3 class="fw-bold mb-2" style="font-size:1rem;">One-Click Attendance</h3>
+                    <p class="text-secondary mb-0" style="font-size:0.85rem;line-height:1.6;">
+                        Record attendance for your entire class in one page. Mark present, absent, late, or excused per student per term in seconds.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card p-4">
+                    <div class="feature-icon mb-3">📄</div>
+                    <h3 class="fw-bold mb-2" style="font-size:1rem;">Auto-Generated School Forms</h3>
+                    <p class="text-secondary mb-0" style="font-size:0.85rem;line-height:1.6;">
+                        SF1, SF2, SF9, and SF10 — generated automatically from your data. Download anytime, ready to submit.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card p-4">
+                    <div class="feature-icon mb-3">🔔</div>
+                    <h3 class="fw-bold mb-2" style="font-size:1rem;">Smart Alerts Dashboard</h3>
+                    <p class="text-secondary mb-0" style="font-size:0.85rem;line-height:1.6;">
+                        Get notified when attendance is not recorded, students fall below 75, Written Works are below DepEd minimum, or reports are due.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card p-4">
+                    <div class="feature-icon mb-3">🛡️</div>
+                    <h3 class="fw-bold mb-2" style="font-size:1rem;">Intervention Tracker</h3>
+                    <p class="text-secondary mb-0" style="font-size:0.85rem;line-height:1.6;">
+                        Document every intervention with parent contact, method, evidence, and outcome. Generate proof of action reports if a complaint arises.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card p-4">
+                    <div class="feature-icon mb-3">📈</div>
+                    <h3 class="fw-bold mb-2" style="font-size:1rem;">Class Analytics</h3>
+                    <p class="text-secondary mb-0" style="font-size:0.85rem;line-height:1.6;">
+                        See attendance trends, grade distribution, passing rates, and at-risk students at a glance — per section, per subject, per term.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+ 
+<!-- ── HOW IT WORKS ── -->
+<section class="how-section py-5" id="how">
+    <div class="container py-4">
+        <div class="section-eyebrow mb-2">How it works</div>
+        <h2 class="font-lora fw-semibold mb-5" style="font-size:clamp(1.6rem,2.5vw,2.2rem);color:var(--ink);max-width:400px;">
+            Set up once. Use all year.
+        </h2>
+        <div class="row g-4 text-center">
+            <div class="col-sm-6 col-lg-3">
+                <div class="how-step-num">1</div>
+                <h3 class="fw-bold mb-2" style="font-size:0.95rem;">Create your section</h3>
+                <p class="text-secondary" style="font-size:0.83rem;line-height:1.6;">
+                    Add your section, set your role as adviser or subject teacher, and configure your subjects with the correct type.
+                </p>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="how-step-num">2</div>
+                <h3 class="fw-bold mb-2" style="font-size:0.95rem;">Enroll your students</h3>
+                <p class="text-secondary" style="font-size:0.83rem;line-height:1.6;">
+                    Search by LRN or name. If the student is already in the system, enroll in one click. New students take 30 seconds to add.
+                </p>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="how-step-num">3</div>
+                <h3 class="fw-bold mb-2" style="font-size:0.95rem;">Record daily</h3>
+                <p class="text-secondary" style="font-size:0.83rem;line-height:1.6;">
+                    Take attendance and input activity scores every day. The system computes grades and flags issues automatically.
+                </p>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="how-step-num">4</div>
+                <h3 class="fw-bold mb-2" style="font-size:0.95rem;">Download forms</h3>
+                <p class="text-secondary" style="font-size:0.83rem;line-height:1.6;">
+                    At the end of each term or month, download your DepEd school forms — already filled with your data.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+ 
+<!-- ── PRICING ── -->
+<section class="py-5" id="pricing">
+    <div class="container py-4" style="max-width:860px;">
+        <div class="text-center mb-5">
+            <div class="section-eyebrow mb-2">Pricing</div>
+            <h2 class="font-lora fw-semibold mb-3" style="font-size:clamp(1.6rem,2.5vw,2.2rem);color:var(--ink);">
+                Simple, honest pricing for teachers
+            </h2>
+            <p class="text-secondary">No hidden fees. No confusing tiers. Just one decision.</p>
+        </div>
+        <div class="row g-4 align-items-start">
+ 
+            <!-- Free Plan -->
+            <div class="col-md-5">
+                <div class="pricing-card p-4">
+                    <h3 class="fw-bold mb-3" style="font-size:0.85rem;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.06em;">
+                        Free Forever
+                    </h3>
+                    <div class="mb-1">
+                        <span class="pricing-currency">₱</span>
+                        <span class="pricing-amount">0</span>
+                        <span class="text-secondary" style="font-size:0.85rem;"> / year</span>
+                    </div>
+                    <p class="mb-3" style="font-size:0.78rem;color:var(--leaf);font-weight:600;">
+                        Limited to 1 section
+                    </p>
+                    <hr style="border-color:var(--border);">
+                    <ul class="list-unstyled d-flex flex-column gap-2 mb-4" style="font-size:0.88rem;">
+                        <li class="d-flex gap-2"><span class="pricing-check">✓</span> 1 section only</li>
+                        <li class="d-flex gap-2"><span class="pricing-check">✓</span> Up to 40 students</li>
+                        <li class="d-flex gap-2"><span class="pricing-check">✓</span> Attendance tracking</li>
+                        <li class="d-flex gap-2"><span class="pricing-check">✓</span> Basic grade input</li>
+                        <li class="d-flex gap-2 text-secondary"><span class="pricing-cross">✗</span> School form generation</li>
+                        <li class="d-flex gap-2 text-secondary"><span class="pricing-cross">✗</span> Smart alerts</li>
+                        <li class="d-flex gap-2 text-secondary"><span class="pricing-cross">✗</span> Intervention tracker</li>
+                        <li class="d-flex gap-2 text-secondary"><span class="pricing-cross">✗</span> Analytics</li>
+                    </ul>
+                    <a href="https://www.facebook.com/profile.php?id=61584252110866" target="_blank"  class="btn btn-outline-ink w-100 py-3 rounded-3">
+                        Get started free
+                    </a>
+                </div>
+            </div>
+ 
+            <!-- Pro Plan -->
+            <div class="col-md-7">
+                <div class="pricing-card featured p-4 pt-5">
+                    <div class="pricing-popular">🎉 FREE for first year — Launch Offer</div>
+                    <h3 class="fw-bold mb-3" style="font-size:0.85rem;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.06em;">
+                        Pro Teacher
+                    </h3>
+                    <div class="mb-1">
+                        <span class="pricing-currency">₱</span>
+                        <span class="pricing-amount">0</span>
+                        <span class="text-secondary" style="font-size:0.85rem;"> / first year</span>
+                    </div>
+                    <p class="mb-3" style="font-size:0.78rem;color:var(--leaf);font-weight:600;">
+                        Then ₱699/year — less than ₱60/month
+                    </p>
+                    <hr style="border-color:var(--border);">
+                    <ul class="list-unstyled d-flex flex-column gap-2 mb-4" style="font-size:0.88rem;">
+                        <li class="d-flex gap-2"><span class="pricing-check">✓</span> Unlimited sections</li>
+                        <li class="d-flex gap-2"><span class="pricing-check">✓</span> Unlimited students</li>
+                        <li class="d-flex gap-2"><span class="pricing-check">✓</span> Full attendance + SF2</li>
+                        <li class="d-flex gap-2"><span class="pricing-check">✓</span> Auto grade computation (DepEd weights)</li>
+                        <li class="d-flex gap-2"><span class="pricing-check">✓</span> SF1, SF2, SF9, SF10 generation</li>
+                        <li class="d-flex gap-2"><span class="pricing-check">✓</span> Smart alerts dashboard</li>
+                        <li class="d-flex gap-2"><span class="pricing-check">✓</span> Intervention tracker</li>
+                        <li class="d-flex gap-2"><span class="pricing-check">✓</span> Class analytics & reports</li>
+                        <li class="d-flex gap-2"><span class="pricing-check">✓</span> Priority support</li>
+                    </ul>
+                    <a href="https://www.facebook.com/profile.php?id=61584252110866" target="_blank"  class="btn btn-leaf w-100 py-3 rounded-3 fs-6">
+                        🚀 Claim Your Free Year
+                    </a>
+                </div>
+            </div>
+ 
+        </div>
+        <p class="text-center mt-4" style="font-size:0.82rem;color:var(--ink-muted);">
+            🔒 No credit card required for first year · Cancel anytime · Your data is always yours
+        </p>
+    </div>
+</section>
+ 
+<!-- ── TESTIMONIALS ── -->
+<section class="testi-section py-5">
+    <div class="container py-4">
+        <div class="section-eyebrow mb-2">From teachers</div>
+        <h2 class="font-lora fw-semibold mb-5" style="font-size:clamp(1.6rem,2.5vw,2.2rem);color:var(--ink);">
+            What teachers are saying
+        </h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="testi-card p-4">
+                    <div class="testi-stars mb-3">★★★★★</div>
+                    <p class="font-lora fst-italic mb-4" style="font-size:0.95rem;color:var(--ink);line-height:1.7;">
+                        "Hindi na ako nagga-gabi sa paggawa ng class record. Ang attendance, grades, at SF forms — lahat nandoon na. Sobrang nakatulong sa akin bilang adviser."
+                    </p>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="testi-avatar">👩‍🏫</div>
+                        <div>
+                            <div class="fw-bold" style="font-size:0.88rem;">Ma'am Rosario D.</div>
+                            <div style="font-size:0.75rem;color:var(--ink-muted);">Grade 8 Adviser · Iloilo City</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="testi-card p-4">
+                    <div class="testi-stars mb-3">★★★★★</div>
+                    <p class="font-lora fst-italic mb-4" style="font-size:0.95rem;color:var(--ink);line-height:1.7;">
+                        "Yung smart alerts ang pinaka-gusto ko. Alam ko agad kung sino ang at-risk students bago pa man maging malala. Nakatulong talaga sa intervention ko."
+                    </p>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="testi-avatar">👨‍🏫</div>
+                        <div>
+                            <div class="fw-bold" style="font-size:0.88rem;">Sir Marco T.</div>
+                            <div style="font-size:0.75rem;color:var(--ink-muted);">Math Teacher · Roxas City</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="testi-card p-4">
+                    <div class="testi-stars mb-3">★★★★★</div>
+                    <p class="font-lora fst-italic mb-4" style="font-size:0.95rem;color:var(--ink);line-height:1.7;">
+                        "Bilang subject teacher at adviser sa iisang section, dati sobrang dami kong ina-asikaso. Ngayon automatic na ang computation. SF9 ng bawat bata, isang click lang."
+                    </p>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="testi-avatar">👩‍🏫</div>
+                        <div>
+                            <div class="fw-bold" style="font-size:0.88rem;">Ma'am Lenie S.</div>
+                            <div style="font-size:0.75rem;color:var(--ink-muted);">Filipino & Adviser · Calinog</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+ 
+<!-- ── CTA ── -->
+<section class="py-5 text-center">
+    <div class="container py-4" style="max-width:680px;">
+        <h2 class="font-lora fw-semibold mb-3" style="font-size:clamp(1.8rem,3vw,2.6rem);color:var(--ink);">
+            Start your free year today.
+        </h2>
+        <p class="text-secondary mb-4">
+            No credit card. No commitment. Just a better way to manage your class — aligned with DepEd, built for Filipino teachers.
+        </p>
+        <div class="d-flex gap-3 justify-content-center flex-wrap mb-3">
+            <a href="{% url 'register' %}" target="_blank" class="btn btn-leaf px-5 py-3 rounded-3 fs-6">
+                🚀 Get EduAlly Free
+            </a>
+            <a href="{% url 'login' %}" class="btn btn-outline-ink px-4 py-3 rounded-3 fs-6">
+                Already have an account? Log in
+            </a>
+        </div>
+        <p style="font-size:0.8rem;color:var(--ink-muted);">
+            Free for the entire first year. After that, only ₱699/year —
+            less than the cost of one ream of bond paper per month.
+        </p>
+    </div>
+</section>
+ 
+<!-- ── FOOTER ── -->
+<footer class="landing-footer py-4 px-4 px-lg-5">
+    <div class="container-fluid">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <div class="text-white fw-bold">📚 EduAlly</div>
+                <div style="font-size:0.82rem;color:rgba(255,255,255,0.5);">
+                    Built with ❤️ for Filipino teachers
+                </div>
+            </div>
+            <ul class="list-unstyled d-flex gap-4 mb-0">
+                <li><a href="#" class="text-decoration-none" style="color:rgba(255,255,255,0.5);">Privacy</a></li>
+                <li><a href="#" class="text-decoration-none" style="color:rgba(255,255,255,0.5);">Terms</a></li>
+                <li><a href="#" class="text-decoration-none" style="color:rgba(255,255,255,0.5);">Contact</a></li>
+                <li><a href="{% url 'login' %}" class="text-decoration-none" style="color:rgba(255,255,255,0.5);">Log in</a></li>
+            </ul>
+            <div style="font-size:0.82rem;color:rgba(255,255,255,0.5);">
+                © 2026 EduAlly. All rights reserved.
+            </div>
+        </div>
+    </div>
+</footer>
 {% endblock %}

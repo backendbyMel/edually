@@ -1,0 +1,32 @@
+{% extends 'users/base.html' %}
+{% block content %}
+<div class="container mt-4" style="max-width:500px;">
+    <div class="card">
+        <div class="card-header fw-bold">
+            ✉️ Change Email Address
+        </div>
+        <div class="card-body">
+            <p class="text-muted" style="font-size:0.88rem;">
+                Current email: <strong>{{ current_email }}</strong>
+            </p>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label">
+                        New Email Address
+                        <span class="text-danger">*</span>
+                    </label>
+                    <input type="email"
+                           name="email"
+                           class="form-control"
+                           placeholder="Enter new email"
+                           required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">
+                    Update Email
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

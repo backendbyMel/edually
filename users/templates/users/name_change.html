@@ -1,0 +1,29 @@
+{% extends "users/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container mt-5" style="max-width:520px;">
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+            <h4 class="fw-bold mb-1">Change name</h4>
+            <p class="text-muted mb-4" style="font-size:0.88rem;">
+                Update your first, middle, and last name.
+            </p>
+
+            <form method="POST">
+                {% csrf_token %}
+
+                {{ form|crispy }}
+
+                <button type="submit" class="btn btn-primary w-100 py-2">
+                    Save changes
+                </button>
+
+                <a href="{% url 'profile' %}" class="btn btn-outline-secondary w-100 mt-2">
+                    Cancel
+                </a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}

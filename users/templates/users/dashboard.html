@@ -40,7 +40,8 @@
     <div class="col-md-3">
         <div class="card border-info">
             <div class="card-body">
-                <h3 class="text-info">{{ active_term }}</h3>
+                <h3 class="text-info">{% if active_term %}
+                    {{ active_term }}{% endif %}</h3>
                 <small>Active Term</small>
             </div>
         </div>

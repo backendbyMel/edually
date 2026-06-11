@@ -34,7 +34,36 @@ urlpatterns = [
     path('section/', include('sections.urls')),
     path('student/', include('students.urls')),
     path('coming-soon/',user_views.coming_soon,name='coming-soon'),
-    
+    path('password/change/',auth_views.PasswordChangeView.as_view(template_name='users/password_change.html',success_url='/password/change/done/'),name='password-change'),
+    path('password/change/done/',auth_views.PasswordChangeDoneView.as_view(template_name='users/password_change_done.html'),name='password-change-done'),
+    path('password/reset/',auth_views.PasswordResetView.as_view(
+        template_name='users/password_reset.html',
+        email_template_name='users/password_reset_email.html',
+        subject_template_name='users/password_reset_subject.txt',
+        success_url='/password/reset/done/'), name='password-reset'),
+    path('password/reset/',auth_views.PasswordResetView.as_view(
+        template_name='users/password_reset.html',
+        email_template_name='users/password_reset_email.html',
+        subject_template_name='users/password_reset_subject.txt',
+        success_url='/password/reset/done/'),
+        name='password-reset'),
+    path('password/reset/done/',auth_views.PasswordResetDoneView.as_view(template_name='users/password_reset_done.html'),name='password-reset-done'),
+    path('password/reset/<uidb64>/<token>/',auth_views.PasswordResetConfirmView.as_view(
+        template_name='users/password_reset_confirm.html',
+        success_url='/password/reset/complete/'),
+        name='password-reset-confirm'),
+    path('password/reset/complete/',auth_views.PasswordResetCompleteView.as_view(
+        template_name='users/password_reset_complete.html'),name='password-reset-complete'),
+    path('username/reset/',user_views.forgot_username, name='forgot-username'),
+    path("password/change/",auth_views.PasswordChangeView.as_view(
+        template_name="users/password_change.html",
+        success_url="/password/change/done/",),
+        name="password-change",),
+    path("password/change/done/",auth_views.PasswordChangeDoneView.as_view(
+        template_name="users/password_change_done.html",),
+        name="password-change-done",),
+    path("email/change/", user_views.change_email, name="email-change"),
+     path("profile/name/change/", user_views.change_name, name="name-change"),
 ]
 
 if settings.DEBUG:

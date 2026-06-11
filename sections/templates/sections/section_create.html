@@ -1,11 +1,11 @@
 {% extends "users/base.html" %}
 {% load crispy_forms_tags %}
 {% block content %}
-	<div class="content-section">
+	<div class="container mt-5" style="max-width:900px;">
 		<form method="POST">
 			{% csrf_token %}
 			<fieldset class="form-group">
-				<legend class="border-bottom mb-4">Create a new section</legend>
+				<legend class="border-bottom mb-4"><h4 class="fw-bold mb-1">Add new section</h4></legend>
 			{{ form|crispy }}
 			</fieldset>
 			<div class="form-group">

@@ -24,6 +24,8 @@ class Section(models.Model):
     class_type = models.CharField(max_length=100, choices=Class_Type, default='JHS',null=True)
     is_adviser = models.BooleanField(default=True) 
     is_subject_teacher = models.BooleanField(default=False)
+    school_name=models.CharField(max_length=100)
+    school_id=models.CharField(max_length=50)
     principal_name = models.CharField(max_length=100, null=True)
     school_year = models.ForeignKey(schoolYear,on_delete=models.CASCADE, limit_choices_to= {'is_active':True}, default='S.Y. 2026-2027') 
     

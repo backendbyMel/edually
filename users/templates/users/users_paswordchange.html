@@ -1,0 +1,70 @@
+{% extends 'users/base.html' %}
+{% block content %}
+<div class="container mt-4" style="max-width:500px;">
+    <div class="card">
+        <div class="card-header fw-bold">
+            🔒 Change Password
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+                
+                <!-- Old Password -->
+                <div class="mb-3">
+                    <label class="form-label">
+                        Current Password
+                        <span class="text-danger">*</span>
+                    </label>
+                    <input type="password"
+                           name="old_password"
+                           class="form-control"
+                           required>
+                    {% if form.old_password.errors %}
+                    <small class="text-danger">
+                        {{ form.old_password.errors }}
+                    </small>
+                    {% endif %}
+                </div>
+
+                <!-- New Password -->
+                <div class="mb-3">
+                    <label class="form-label">
+                        New Password
+                        <span class="text-danger">*</span>
+                    </label>
+                    <input type="password"
+                           name="new_password1"
+                           class="form-control"
+                           required>
+                    {% if form.new_password1.errors %}
+                    <small class="text-danger">
+                        {{ form.new_password1.errors }}
+                    </small>
+                    {% endif %}
+                </div>
+
+                <!-- Confirm New Password -->
+                <div class="mb-3">
+                    <label class="form-label">
+                        Confirm New Password
+                        <span class="text-danger">*</span>
+                    </label>
+                    <input type="password"
+                           name="new_password2"
+                           class="form-control"
+                           required>
+                    {% if form.new_password2.errors %}
+                    <small class="text-danger">
+                        {{ form.new_password2.errors }}
+                    </small>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">
+                    Update Password
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

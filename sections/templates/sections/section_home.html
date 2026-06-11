@@ -1,47 +1,112 @@
 {% extends 'users/base.html' %}
 {% block content %}
-  <h2>Section List</h2>
-  <form method="post" action="{% url 'section-create' %}">
-    {% csrf_token %}
-    <button type="submit" class="btn btn-primary">Create</button>
-  </form>
-  
-  {% if sections %}
-  <table class="table table-striped table-hover">
-    <thead>
-      <tr>
-        <th scope="col">Name</th>
-        <th scope="col">Role</th>
-        <th scope="col">School Year</th>
-        <th scope="col">Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for section in sections %}
-              <tr>
-                  <td>{{ section.name }}</td>
-                  <td>{% if section.is_adviser %}
-                          ✅ Adviser
-                        {% else %}
-                          ❌ Not Adviser
-                      {% endif %}
-                      {% if section.is_subject_teacher %}
-                          ✅ Subject Teacher
-                      {% else %}
-                          ❌ Not Subject Teacher
-                      {% endif %}</td>
-                  <td>{{ section.school_year }}</td>
-                  <td>
-                    <a href="{% url 'section-detail' section.id %}" class="btn btn-info">View Details</a>
-                    <a href="{% url 'section-delete' section.id %}" class="btn btn-danger">Delete Section</a>
-                  </td>
-              </tr>
-          {% endfor %}
-    </tbody>
-  </table>
-  {%else %}
-  <div class="alert alert-info mt-3" role="alert">
-      There is no section yet. Click 'Create' button to add.
-  </div>
-  {% endif %}
+<div class="container mt-5">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Sections</h2>
+            <p class="text-muted mb-0">
+                Manage your assigned advisory and subject teacher sections.
+            </p>
+        </div>
+
+        <form method="post" action="{% url 'section-create' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary px-4">
+                Create Section
+            </button>
+        </form>
+    </div>
+
+    {% if sections %}
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col" class="ps-4">Section Name</th>
+                                <th scope="col">Grade Level</th>
+                                <th scope="col">Role</th>
+                                <th scope="col">School Year</th>
+                                <th scope="col" class="text-end pe-4">Actions</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for section in sections %}
+                                <tr>
+                                    <td class="ps-4 fw-semibold">
+                                        {{ section.name }}
+                                    </td>
+                                    <td class="ps-4">
+                                        {{ section.grade_level }}
+                                    </td>
+
+                                    <td>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            {% if section.is_adviser %}
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle">
+                                                    Adviser
+                                                </span>
+                                            {% endif %}
+
+                                            {% if section.is_subject_teacher %}
+                                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
+                                                    Subject Teacher
+                                                </span>
+                                            {% endif %}
+
+                                            {% if not section.is_adviser and not section.is_subject_teacher %}
+                                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">
+                                                    No role assigned
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <span class="text-muted">
+                                            {{ section.school_year }}
+                                        </span>
+                                    </td>
+
+                                    <td class="text-end pe-4">
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <a href="{% url 'section-detail' section.id %}"
+                                               class="btn btn-sm btn-outline-primary">
+                                                View
+                                            </a>
+
+                                            <a href="{% url 'section-delete' section.id %}"
+                                               class="btn btn-sm btn-outline-danger">
+                                                Delete
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="card shadow-sm border-0">
+            <div class="card-body text-center p-5">
+                <h5 class="fw-bold mb-2">No sections yet</h5>
+                <p class="text-muted mb-4">
+                    Create your first section to start managing class records.
+                </p>
+
+                <form method="post" action="{% url 'section-create' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary px-4">
+                        Create Section
+                    </button>
+                </form>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% include 'partials/_pagination.html' %}
 {% endblock %}
