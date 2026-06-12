@@ -1,0 +1,870 @@
+{% extends 'users/base.html' %}
+{% load static %}
+{% block content %}
+ 
+<style>
+    :root {
+        --leaf:       #1a7a4a;
+        --leaf-mid:   #22a060;
+        --leaf-light: #e6f5ed;
+        --gold:       #e8a020;
+        --gold-light: #fef6e4;
+        --ink:        #1a1f2e;
+        --ink-soft:   #4a5568;
+        --ink-muted:  #8a97aa;
+        --border:     #e2e8f0;
+    }
+ 
+    .guide-hero {
+        background: linear-gradient(135deg, #f0f9f4 0%, #fef6e4 100%);
+        border-radius: 16px;
+        padding: 40px;
+        margin-bottom: 32px;
+    }
+ 
+    /* ── PROGRESS TRACKER ── */
+    .progress-tracker {
+        display: flex;
+        align-items: flex-start;
+        gap: 0;
+        overflow-x: auto;
+        padding-bottom: 8px;
+        margin-bottom: 40px;
+    }
+    .tracker-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex: 1;
+        min-width: 80px;
+        cursor: pointer;
+    }
+    .tracker-line-wrap {
+        display: flex;
+        align-items: center;
+        width: 100%;
+    }
+    .tracker-circle {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: 2px solid var(--border);
+        background: white;
+        display: grid;
+        place-items: center;
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--ink-muted);
+        flex-shrink: 0;
+        transition: all 0.2s;
+        z-index: 1;
+    }
+    .tracker-circle.done {
+        background: var(--leaf);
+        border-color: var(--leaf);
+        color: white;
+    }
+    .tracker-circle.active {
+        background: white;
+        border-color: var(--leaf);
+        color: var(--leaf);
+        box-shadow: 0 0 0 4px var(--leaf-light);
+    }
+    .tracker-line {
+        flex: 1;
+        height: 2px;
+        background: var(--border);
+    }
+    .tracker-line.done { background: var(--leaf); }
+    .tracker-label {
+        font-size: 0.68rem;
+        color: var(--ink-muted);
+        text-align: center;
+        margin-top: 6px;
+        font-weight: 500;
+        max-width: 72px;
+    }
+    .tracker-label.active {
+        color: var(--leaf);
+        font-weight: 700;
+    }
+ 
+    /* ── STEP CARDS ── */
+    .step-card {
+        border: 1.5px solid var(--border);
+        border-radius: 16px;
+        overflow: hidden;
+        margin-bottom: 20px;
+        transition: box-shadow 0.2s;
+    }
+    .step-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.06); }
+    .step-card.completed { border-color: var(--leaf); }
+    .step-card.current { border-color: var(--leaf); box-shadow: 0 0 0 3px var(--leaf-light); }
+ 
+    .step-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 20px 24px;
+        cursor: pointer;
+        background: white;
+        user-select: none;
+    }
+    .step-num {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 1rem;
+        font-weight: 800;
+        flex-shrink: 0;
+    }
+    .step-num.pending {
+        background: #f7f8fa;
+        color: var(--ink-muted);
+        border: 2px solid var(--border);
+    }
+    .step-num.current {
+        background: var(--leaf-light);
+        color: var(--leaf);
+        border: 2px solid var(--leaf);
+    }
+    .step-num.completed {
+        background: var(--leaf);
+        color: white;
+    }
+    .step-title {
+        flex: 1;
+    }
+    .step-title h3 {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--ink);
+        margin: 0 0 2px;
+    }
+    .step-title p {
+        font-size: 0.8rem;
+        color: var(--ink-muted);
+        margin: 0;
+    }
+    .step-badge-done {
+        background: var(--leaf-light);
+        color: var(--leaf);
+        border-radius: 99px;
+        padding: 3px 12px;
+        font-size: 0.72rem;
+        font-weight: 700;
+    }
+    .step-badge-current {
+        background: var(--gold-light);
+        color: var(--gold);
+        border-radius: 99px;
+        padding: 3px 12px;
+        font-size: 0.72rem;
+        font-weight: 700;
+    }
+    .step-chevron {
+        color: var(--ink-muted);
+        transition: transform 0.2s;
+        font-size: 12px;
+    }
+    .step-chevron.open { transform: rotate(180deg); }
+ 
+    .step-body {
+        padding: 0 24px 24px;
+        border-top: 1px solid var(--border);
+        background: #fafbfc;
+    }
+ 
+    /* ── TIP BOXES ── */
+    .tip-box {
+        border-radius: 10px;
+        padding: 14px 16px;
+        font-size: 0.85rem;
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+    }
+    .tip-box.info {
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        color: #1e40af;
+    }
+    .tip-box.warning {
+        background: var(--gold-light);
+        border: 1px solid #f0d080;
+        color: #7a5500;
+    }
+    .tip-box.success {
+        background: var(--leaf-light);
+        border: 1px solid #9fd4b8;
+        color: #0e5a33;
+    }
+    .tip-box.danger {
+        background: #fdeaea;
+        border: 1px solid #fca5a5;
+        color: #7f1d1d;
+    }
+ 
+    /* ── SUB STEPS ── */
+    .sub-steps {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin: 16px 0;
+    }
+    .sub-step {
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+    }
+    .sub-step-dot {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: white;
+        border: 2px solid var(--border);
+        display: grid;
+        place-items: center;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--ink-muted);
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+    .sub-step-content h4 {
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: var(--ink);
+        margin: 0 0 2px;
+    }
+    .sub-step-content p {
+        font-size: 0.8rem;
+        color: var(--ink-soft);
+        margin: 0;
+        line-height: 1.5;
+    }
+ 
+    /* ── ACTION BUTTON ── */
+    .btn-leaf {
+        background: var(--leaf);
+        color: white;
+        border: none;
+        font-weight: 700;
+        transition: background 0.15s;
+        text-decoration: none;
+    }
+    .btn-leaf:hover { background: #155f3a; color: white; }
+ 
+    /* ── ROLE TABS ── */
+    .role-tab {
+        border: 1.5px solid var(--border);
+        border-radius: 10px;
+        padding: 14px 18px;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+    .role-tab.active {
+        border-color: var(--leaf);
+        background: var(--leaf-light);
+    }
+    .role-tab h4 { font-size: 0.9rem; font-weight: 700; margin: 0 0 4px; }
+    .role-tab p { font-size: 0.78rem; color: var(--ink-soft); margin: 0; }
+ 
+    /* ── QUICK REFERENCE ── */
+    .quick-ref-table td, .quick-ref-table th {
+        font-size: 0.82rem;
+        vertical-align: middle;
+    }
+ 
+    @media (max-width: 640px) {
+        .guide-hero { padding: 24px; }
+        .step-header { padding: 16px; }
+        .step-body { padding: 0 16px 16px; }
+        .progress-tracker { gap: 0; }
+    }
+</style>
+ 
+<!-- ── HERO ── -->
+<div class="guide-hero mt-3">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+        <div>
+            <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--leaf);">
+                Getting Started
+            </div>
+            <h2 style="font-family:'Lora',serif;font-size:1.8rem;font-weight:600;color:var(--ink);margin:6px 0 8px;">
+                Welcome to EduAlly, {{ request.user.first_name }}! 👋
+            </h2>
+            <p style="color:var(--ink-soft);font-size:0.95rem;max-width:560px;margin:0;">
+                Follow this guide to set up your class record correctly.
+                Each step builds on the previous one — completing them
+                in order will save you time later.
+            </p>
+        </div>
+        <div class="text-center">
+            <div style="font-size:2.5rem;font-weight:800;color:var(--leaf);">
+                {{ completion_percentage|default:'0' }}%
+            </div>
+            <div style="font-size:0.75rem;color:var(--ink-muted);">Setup Complete</div>
+        </div>
+    </div>
+ 
+    <!-- Overall Progress Bar -->
+    <div class="mt-3">
+        <div class="progress" style="height:8px;border-radius:99px;background:#d1fae5;">
+            <div class="progress-bar"
+                 style="width:{{ completion_percentage|default:'0' }}%;
+                        background:var(--leaf);
+                        border-radius:99px;
+                        transition:width 0.5s;">
+            </div>
+        </div>
+    </div>
+</div>
+ 
+<!-- ── ROLE SELECTOR ── -->
+<div class="mb-4">
+    <p class="fw-bold mb-2" style="font-size:0.9rem;">
+        What is your role? This customizes the guide for you.
+    </p>
+    <div class="row g-2">
+        <div class="col-md-4">
+            <div class="role-tab active" onclick="setRole('adviser', this)">
+                <h4>🏫 Adviser Only</h4>
+                <p>You handle attendance, school forms, and manual grade input from subject teachers.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="role-tab" onclick="setRole('subject', this)">
+                <h4>📊 Subject Teacher Only</h4>
+                <p>You input scores and compute grades for your specific subject.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="role-tab" onclick="setRole('both', this)">
+                <h4>👩‍🏫 Both Roles</h4>
+                <p>You are the adviser AND teach a subject in the same section.</p>
+            </div>
+        </div>
+    </div>
+</div>
+ 
+<!-- STEP 3: Section -->
+<div class="step-card current" id="step3">
+    <div class="step-header" onclick="toggleStep('step3body')">
+        <div class="step-num current">3</div>
+        <div class="step-title">
+            <h3>Create Your Section</h3>
+            <p>Set up your class with the correct grade level and role</p>
+        </div>
+        <span class="step-badge-current">Start Here</span>
+        <span class="step-chevron open" id="step3chevron">▼</span>
+    </div>
+    <div class="step-body" id="step3body">
+        <div class="sub-steps mt-3">
+            <div class="sub-step">
+                <div class="sub-step-dot">1</div>
+                <div class="sub-step-content">
+                    <h4>Click "Create Section" from the Sections page</h4>
+                    <p>Fill in section name, grade level (7-12), and school details.</p>
+                </div>
+            </div>
+            <div class="sub-step">
+                <div class="sub-step-dot">2</div>
+                <div class="sub-step-content">
+                    <h4>Choose your class type</h4>
+                    <p>Select JHS (Grade 7-10) or SHS (Grade 11-12). This determines the grading weights for subjects.</p>
+                </div>
+            </div>
+            <div class="sub-step">
+                <div class="sub-step-dot">3</div>
+                <div class="sub-step-content">
+                    <h4>Set your role in this section</h4>
+                    <p>
+                        <strong>Adviser</strong> — you handle attendance, school forms, and manually input grades given by subject teachers.<br>
+                        <strong>Subject Teacher</strong> — you input scores and compute grades for your subject.<br>
+                        <strong>Both</strong> — you do everything above.
+                    </p>
+                </div>
+            </div>
+        </div>
+ 
+        <!-- Role specific tips -->
+        <div id="role-tip-adviser" class="tip-box success mt-3">
+            <span>✅</span>
+            <div>
+                <strong>As Adviser:</strong> After creating the section,
+                add subjects first — then enroll students.
+                You will manually input the final grades per subject
+                given to you by each subject teacher.
+            </div>
+        </div>
+        <div id="role-tip-subject" class="tip-box info mt-3" style="display:none;">
+            <span>ℹ️</span>
+            <div>
+                <strong>As Subject Teacher:</strong> After creating the section,
+                add your subject and mark it as "handled by me."
+                You will input scores per activity and the system
+                computes the quarterly grade automatically.
+            </div>
+        </div>
+        <div id="role-tip-both" class="tip-box warning mt-3" style="display:none;">
+            <span>💡</span>
+            <div>
+                <strong>As Both:</strong> You have access to everything.
+                For YOUR subject — scores are auto-computed.
+                For OTHER subjects — you manually input the final grade
+                given by the other teacher.
+            </div>
+        </div>
+ 
+        <div class="mt-3">
+            <a href="{% url 'section-create' %}" class="btn btn-leaf px-4 py-2 rounded-3 btn-sm">
+                Create Section →
+            </a>
+        </div>
+    </div>
+</div>
+ 
+<!-- STEP 4: Subjects -->
+<div class="step-card" id="step4">
+    <div class="step-header" onclick="toggleStep('step4body')">
+        <div class="step-num pending">4</div>
+        <div class="step-title">
+            <h3>Add Subjects</h3>
+            <p>Add all subjects taught in your section in the correct order</p>
+        </div>
+        <span class="step-chevron" id="step4chevron">▼</span>
+    </div>
+    <div class="step-body" id="step4body" style="display:none;">
+        <div class="sub-steps mt-3">
+            <div class="sub-step">
+                <div class="sub-step-dot">1</div>
+                <div class="sub-step-content">
+                    <h4>Open your section and go to the Subjects tab</h4>
+                    <p>Click on your section from the Sections list, then click the Subjects tab.</p>
+                </div>
+            </div>
+            <div class="sub-step">
+                <div class="sub-step-dot">2</div>
+                <div class="sub-step-content">
+                    <h4>Add each subject with the correct type and order</h4>
+                    <p>
+                        The order number determines how subjects appear in school forms like SF9.<br>
+                        Set the correct subject type — this determines the WW/PT/TE grading weights.
+                    </p>
+                </div>
+            </div>
+            <div class="sub-step">
+                <div class="sub-step-dot">3</div>
+                <div class="sub-step-content">
+                    <h4>Check "I am the subject teacher" for your own subjects</h4>
+                    <p>This unlocks score input and auto grade computation for that subject.</p>
+                </div>
+            </div>
+        </div>
+ 
+        <!-- JHS Weight Reference -->
+        <div class="mt-3 mb-2 fw-bold" style="font-size:0.82rem;color:var(--ink-muted);">
+            📊 GRADING WEIGHTS REFERENCE
+        </div>
+        <div class="table-responsive">
+            <table class="table table-bordered table-sm quick-ref-table">
+                <thead class="table-light">
+                    <tr>
+                        <th>Level</th>
+                        <th>Subject Type</th>
+                        <th class="text-center">WW</th>
+                        <th class="text-center">PT</th>
+                        <th class="text-center">TE</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td rowspan="2"><span class="badge bg-primary">JHS</span></td>
+                        <td>Regular Subjects</td>
+                        <td class="text-center">20%</td>
+                        <td class="text-center">50%</td>
+                        <td class="text-center">30%</td>
+                    </tr>
+                    <tr>
+                        <td>TLE / MAPEH</td>
+                        <td class="text-center">20%</td>
+                        <td class="text-center">60%</td>
+                        <td class="text-center">20%</td>
+                    </tr>
+                    <tr>
+                        <td rowspan="5"><span class="badge bg-success">SHS</span></td>
+                        <td>Core</td>
+                        <td class="text-center">20%</td>
+                        <td class="text-center">50%</td>
+                        <td class="text-center">30%</td>
+                    </tr>
+                    <tr>
+                        <td>Academic Elective - All Other</td>
+                        <td class="text-center">20%</td>
+                        <td class="text-center">50%</td>
+                        <td class="text-center">30%</td>
+                    </tr>
+                    <tr>
+                        <td>Academic Elective - Field/Exposure/Sports/Arts</td>
+                        <td class="text-center">15%</td>
+                        <td class="text-center">70%</td>
+                        <td class="text-center">15%</td>
+                    </tr>
+                    <tr>
+                        <td>TechPro Elective - All Other</td>
+                        <td class="text-center">15%</td>
+                        <td class="text-center">65%</td>
+                        <td class="text-center">20%</td>
+                    </tr>
+                    <tr>
+                        <td>TechPro - Work Immersion</td>
+                        <td class="text-center">20%</td>
+                        <td class="text-center">80%</td>
+                        <td class="text-center">0%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+ 
+        <div class="tip-box warning mt-3">
+            <span>⚠️</span>
+            <div>
+                DepEd requires a minimum of <strong>4 Written Works</strong>
+                and <strong>4 Performance Tasks</strong> per term.
+                The system will alert you if you fall below this minimum.
+            </div>
+        </div>
+    </div>
+</div>
+ 
+<!-- STEP 5: Enroll Students -->
+<div class="step-card" id="step5">
+    <div class="step-header" onclick="toggleStep('step5body')">
+        <div class="step-num pending">5</div>
+        <div class="step-title">
+            <h3>Enroll Students</h3>
+            <p>Search by LRN or name and enroll students into your section</p>
+        </div>
+        <span class="step-chevron" id="step5chevron">▼</span>
+    </div>
+    <div class="step-body" id="step5body" style="display:none;">
+        <div class="sub-steps mt-3">
+            <div class="sub-step">
+                <div class="sub-step-dot">1</div>
+                <div class="sub-step-content">
+                    <h4>Go to the Enrolled Students tab in your section</h4>
+                    <p>Click the Enrolled Students tab in your section detail page.</p>
+                </div>
+            </div>
+            <div class="sub-step">
+                <div class="sub-step-dot">2</div>
+                <div class="sub-step-content">
+                    <h4>Click "Enroll Here" and search for the student</h4>
+                    <p>Search by LRN (Learner Reference Number) or student name.</p>
+                </div>
+            </div>
+            <div class="sub-step">
+                <div class="sub-step-dot">3</div>
+                <div class="sub-step-content">
+                    <h4>If student exists — click Enroll</h4>
+                    <p>The student will immediately appear in your enrolled students list.</p>
+                </div>
+            </div>
+            <div class="sub-step">
+                <div class="sub-step-dot">4</div>
+                <div class="sub-step-content">
+                    <h4>If student does not exist — create the student first</h4>
+                    <p>Go to Student List, create the student record with their personal details, then come back to enroll.</p>
+                </div>
+            </div>
+        </div>
+        <div class="tip-box danger mt-3">
+            <span>🚨</span>
+            <div>
+                Make sure subjects are added <strong>before</strong>
+                enrolling students. Some features require subjects
+                to be set up first.
+            </div>
+        </div>
+    </div>
+</div>
+ 
+<!-- STEP 6: Daily Tasks -->
+<div class="step-card" id="step6">
+    <div class="step-header" onclick="toggleStep('step6body')">
+        <div class="step-num pending">6</div>
+        <div class="step-title">
+            <h3>Daily Classroom Tasks</h3>
+            <p>What to do every school day depending on your role</p>
+        </div>
+        <span class="step-chevron" id="step6chevron">▼</span>
+    </div>
+    <div class="step-body" id="step6body" style="display:none;">
+ 
+        <!-- Adviser Tasks -->
+        <div id="daily-adviser">
+            <div class="fw-bold mt-3 mb-2" style="font-size:0.85rem;color:var(--ink);">
+                🏫 If you are the Adviser:
+            </div>
+            <div class="sub-steps">
+                <div class="sub-step">
+                    <div class="sub-step-dot">✓</div>
+                    <div class="sub-step-content">
+                        <h4>Record daily attendance</h4>
+                        <p>Go to Attendance tab → Record Attendance. Mark each student present, absent, late, or excused.</p>
+                    </div>
+                </div>
+                <div class="sub-step">
+                    <div class="sub-step-dot">✓</div>
+                    <div class="sub-step-content">
+                        <h4>Input grades from subject teachers</h4>
+                        <p>When subject teachers give you their computed final grades, input them per student per subject.</p>
+                    </div>
+                </div>
+                <div class="sub-step">
+                    <div class="sub-step-dot">✓</div>
+                    <div class="sub-step-content">
+                        <h4>Monitor at-risk students</h4>
+                        <p>Check the dashboard for students below 80% attendance or failing grades. Log interventions.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+ 
+        <!-- Subject Teacher Tasks -->
+        <div id="daily-subject" style="display:none;">
+            <div class="fw-bold mt-3 mb-2" style="font-size:0.85rem;color:var(--ink);">
+                📊 If you are a Subject Teacher:
+            </div>
+            <div class="sub-steps">
+                <div class="sub-step">
+                    <div class="sub-step-dot">✓</div>
+                    <div class="sub-step-content">
+                        <h4>Create activities for your subject</h4>
+                        <p>Go to Subjects tab → click Scores on your subject → Add Activity. Set the type (Graded/Compliance/Recorded) and component (WW/PT/TE).</p>
+                    </div>
+                </div>
+                <div class="sub-step">
+                    <div class="sub-step-dot">✓</div>
+                    <div class="sub-step-content">
+                        <h4>Input scores per activity</h4>
+                        <p>After each activity, go to Input Scores and enter each student's score. Grades are computed automatically.</p>
+                    </div>
+                </div>
+                <div class="sub-step">
+                    <div class="sub-step-dot">✓</div>
+                    <div class="sub-step-content">
+                        <h4>Ensure minimum DepEd requirements</h4>
+                        <p>Make sure you have at least 4 Written Works and 4 Performance Tasks per term. The system alerts you if not.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+ 
+        <!-- Both Tasks -->
+        <div id="daily-both" style="display:none;">
+            <div class="tip-box info mt-3">
+                <span>💡</span>
+                <div>
+                    As both Adviser and Subject Teacher, you do everything above.
+                    Your dashboard will show all alerts relevant to both roles.
+                </div>
+            </div>
+            <div class="fw-bold mt-3 mb-2" style="font-size:0.85rem;color:var(--ink);">
+                📋 Your daily checklist:
+            </div>
+            <div class="sub-steps">
+                <div class="sub-step">
+                    <div class="sub-step-dot">1</div>
+                    <div class="sub-step-content">
+                        <h4>Record attendance for the whole class</h4>
+                        <p>Attendance tab → Record Attendance.</p>
+                    </div>
+                </div>
+                <div class="sub-step">
+                    <div class="sub-step-dot">2</div>
+                    <div class="sub-step-content">
+                        <h4>Input scores for your subject</h4>
+                        <p>After your class, go to your subject's activities and input scores.</p>
+                    </div>
+                </div>
+                <div class="sub-step">
+                    <div class="sub-step-dot">3</div>
+                    <div class="sub-step-content">
+                        <h4>Input grades from other teachers</h4>
+                        <p>When other subject teachers submit their grades to you, input them manually for each student.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+ 
+    </div>
+</div>
+ 
+<!-- STEP 7: Generate Reports -->
+<div class="step-card" id="step7">
+    <div class="step-header" onclick="toggleStep('step7body')">
+        <div class="step-num pending">7</div>
+        <div class="step-title">
+            <h3>Generate School Forms</h3>
+            <p>Download SF1, SF2, SF9, and SF10 at the end of each term</p>
+        </div>
+        <span class="step-chevron" id="step7chevron">▼</span>
+    </div>
+    <div class="step-body" id="step7body" style="display:none;">
+        <div class="sub-steps mt-3">
+            <div class="sub-step">
+                <div class="sub-step-dot">SF1</div>
+                <div class="sub-step-content">
+                    <h4>School Register (SF1)</h4>
+                    <p>List of all enrolled students with personal details. Generate at the start of the school year or any time.</p>
+                </div>
+            </div>
+            <div class="sub-step">
+                <div class="sub-step-dot">SF2</div>
+                <div class="sub-step-content">
+                    <h4>Daily Attendance Record (SF2)</h4>
+                    <p>Monthly attendance summary. Generate at the end of each month. Requires attendance to be recorded daily.</p>
+                </div>
+            </div>
+            <div class="sub-step">
+                <div class="sub-step-dot">SF9</div>
+                <div class="sub-step-content">
+                    <h4>Report Card (SF9)</h4>
+                    <p>Per student report card with final grades. Generate at the end of each term after all grades are inputted.</p>
+                </div>
+            </div>
+            <div class="sub-step">
+                <div class="sub-step-dot">SF10</div>
+                <div class="sub-step-content">
+                    <h4>Learner's Permanent Academic Record (SF10)</h4>
+                    <p>Complete academic history per student. Generate at end of school year.</p>
+                </div>
+            </div>
+        </div>
+        <div class="tip-box warning mt-3">
+            <span>⚠️</span>
+            <div>
+                SF9 and SF10 require all grades to be complete before generating.
+                Make sure all subject grades are inputted first.
+            </div>
+        </div>
+    </div>
+</div>
+ 
+<!-- ── QUICK REFERENCE CARD ── -->
+<div class="card mt-4 mb-4" style="border-radius:16px;border:1.5px solid var(--border);">
+    <div class="card-header fw-bold" style="border-radius:14px 14px 0 0;background:#f7f8fa;">
+        📋 Quick Reference — What to do and when
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover quick-ref-table mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>When</th>
+                        <th>What to Do</th>
+                        <th>Who</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Start of school year</strong></td>
+                        <td>Set up school year, terms, section, subjects, enroll students</td>
+                        <td><span class="badge bg-primary">Everyone</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Every school day</strong></td>
+                        <td>Record attendance</td>
+                        <td><span class="badge bg-success">Adviser</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>After each activity</strong></td>
+                        <td>Input scores for WW / PT / TE</td>
+                        <td><span class="badge bg-info">Subject Teacher</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>End of each month</strong></td>
+                        <td>Download SF2 (attendance report)</td>
+                        <td><span class="badge bg-success">Adviser</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>End of each term</strong></td>
+                        <td>Input final grades, generate SF9</td>
+                        <td><span class="badge bg-success">Adviser</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>When a student struggles</strong></td>
+                        <td>Log an intervention record</td>
+                        <td><span class="badge bg-success">Adviser</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>End of school year</strong></td>
+                        <td>Generate SF10 for each student</td>
+                        <td><span class="badge bg-success">Adviser</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+ 
+<!-- ── DONE BUTTON ── -->
+<div class="text-center mb-5">
+    <a href="{% url 'dashboard' %}" class="btn btn-leaf px-5 py-3 rounded-3 fs-6">
+        ✅ I understand — Go to Dashboard
+    </a>
+    {% if not profile.has_seen_guide %}
+    <form method="POST" action="{% url 'mark-guide-seen' %}" class="d-inline ms-2">
+        {% csrf_token %}
+        <button type="submit"
+                class="btn btn-outline-secondary px-5 py-3 rounded-3 fs-6">
+            Don't show this again
+        </button>
+    </form>
+    {% endif %}
+</div>
+ 
+<script>
+    // Toggle step body
+    function toggleStep(bodyId) {
+        const body = document.getElementById(bodyId)
+        const stepNum = bodyId.replace('body', '')
+        const chevron = document.getElementById(stepNum + 'chevron')
+ 
+        if (body.style.display === 'none' || body.style.display === '') {
+            body.style.display = 'block'
+            if (chevron) chevron.classList.add('open')
+        } else {
+            body.style.display = 'none'
+            if (chevron) chevron.classList.remove('open')
+        }
+    }
+ 
+    // Role selector
+    function setRole(role, element) {
+        // Update tab styles
+        document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'))
+        element.classList.add('active')
+ 
+        // Show/hide role tips in step 3
+        document.getElementById('role-tip-adviser').style.display = role === 'adviser' ? 'flex' : 'none'
+        document.getElementById('role-tip-subject').style.display = role === 'subject' ? 'flex' : 'none'
+        document.getElementById('role-tip-both').style.display = role === 'both' ? 'flex' : 'none'
+ 
+        // Show/hide daily tasks in step 6
+        document.getElementById('daily-adviser').style.display = role === 'adviser' || role === 'both' ? 'block' : 'none'
+        document.getElementById('daily-subject').style.display = role === 'subject' ? 'block' : 'none'
+        document.getElementById('daily-both').style.display = role === 'both' ? 'block' : 'none'
+    }
+ 
+    // Open step 3 by default
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('step3body').style.display = 'block'
+    })
+</script>
+ 
+{% endblock %}

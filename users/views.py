@@ -28,12 +28,14 @@ def register(request):
 @login_required
 def dashboard(request):
     today = date.today()
-    
+    profile = request.user.profile
     # Get all sections of this teacher
     sections = Section.objects.filter(
         adviser=request.user
     )
-
+    if not profile.has_seen_guide:
+        return redirect('getting-started')
+    
     alerts = []
     current_term = Term.objects.filter(is_current=True).first()
     if sections:
@@ -255,3 +257,17 @@ def change_name(request):
         })
 
     return render(request, "users/name_change.html", {"form": form})
+
+@login_required
+def getting_started(request):
+    return render(request, 'users/getting_started.html', {
+        'completion_percentage': 30,  # compute based on setup
+        'profile': request.user.profile,
+    })
+
+@login_required
+def mark_guide_seen(request):
+    if request.method == 'POST':
+        request.user.profile.has_seen_guide = True
+        request.user.profile.save()
+    return redirect('dashboard')

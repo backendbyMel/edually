@@ -8,12 +8,14 @@ from django.contrib import messages
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from enrollment.models import Enrollment
+from term.models import Term
 # Create your views here.
 class ActivityListView(LoginRequiredMixin, ListView):
     model = Activity
     template_name = 'scores/activity_list.html'
     context_object_name = 'activities'
-
+    paginate_by = 10
+    
     def get_queryset(self):
         self.subject = get_object_or_404(Subject, pk=self.kwargs['subject_pk'])
         return Activity.objects.filter(subject=self.subject).order_by('term', 'component', 'date')
@@ -46,9 +48,16 @@ class ActivityListView(LoginRequiredMixin, ListView):
                 component='PT',
                 activity_type='graded'
             ).count()
+            qa_count = Activity.objects.filter(
+                subject=subject,
+                term=current_term,
+                component='TE',
+                activity_type='graded'
+            ).count()
         else:
             ww_count = 0
             pt_count = 0
+            qa_count = 0
 
         context['section'] = section
         context['subject'] = subject
@@ -57,6 +66,7 @@ class ActivityListView(LoginRequiredMixin, ListView):
         context['pt_count'] = pt_count
         context['ww_alert'] = ww_count < 4
         context['pt_alert'] = pt_count < 4
+        context['qa_count'] = qa_count
         return context
 
 class ActivityCreateView(LoginRequiredMixin, CreateView):
@@ -82,6 +92,7 @@ class ActivityCreateView(LoginRequiredMixin, CreateView):
             pk=self.kwargs['subject_pk']
         )
         return context
+    
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
 
@@ -105,7 +116,7 @@ class ActivityCreateView(LoginRequiredMixin, CreateView):
             pk=self.kwargs['subject_pk']
         )
         # Get active term automatically
-        from term.models import Term
+        
         try:
             current_term = Term.objects.get(is_current=True)
         except Term.DoesNotExist:

@@ -6,7 +6,8 @@ from .views import (SectionListView,
                     SectionDeleteView,
                     SubjectCreateView,
                     SubjectUpdateView,
-                    SubjectDeleteView)
+                    SubjectDeleteView,
+                    SectionMasterlistDocxView)
 
 urlpatterns = [
     path('detail/<int:section_pk>/', include('enrollment.urls')),
@@ -19,5 +20,6 @@ urlpatterns = [
     path('detail/<int:pk>/delete', SectionDeleteView.as_view(),name='section-delete'),
     path('detail/<int:pk>/subject/create/', SubjectCreateView.as_view(),name='subject-create'),
     path('detail/<int:section_pk>/subject/update/<int:subject_pk>', SubjectUpdateView.as_view(),name='subject-update'),
-    path('detail/<int:section_pk>/subject/delete/<int:pk>', SubjectDeleteView.as_view(),name='subject-delete')
+    path('detail/<int:section_pk>/subject/delete/<int:pk>', SubjectDeleteView.as_view(),name='subject-delete'),
+    path('detail/<int:pk>/masterlist/', SectionMasterlistDocxView.as_view(),name='section-masterlist-docx'),
 ]

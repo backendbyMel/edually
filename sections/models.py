@@ -4,29 +4,44 @@ from schoolYear.models import schoolYear
 from term.models import Term
 from django.urls import reverse
 
-Class_Type = {
-    "JHS": "Junior High School",
-    "SHS": "Senior High School",
-}
+CLASS_TYPE_CHOICES = [
+    ("JHS", "Junior High School"),
+    ("SHS", "Senior High School"),
+]
 
 SUBJECT_TYPE_CHOICES = [
+    #for JHS 
+    ('jhs_regular', 'JHS - Regular Subject'),
+    ('jhs_tle_mapeh', 'JHS - TLE / MAPEH'),
+    #for SHS
     ('core', 'Core'),
     ('academic_elective', 'Academic Elective - All Other'),
     ('academic_field', 'Academic Elective - Field/Exposure/Sports/Arts'),
     ('techpro_elective', 'TechPro Elective - All Other'),
     ('techpro_immersion', 'TechPro Elective - Work Immersion'),
 ]
+
+GRADE_LEVEL_CHOICES = [
+    ('7', 'Grade 7'),
+    ('8', 'Grade 8'),
+    ('9', 'Grade 9'),
+    ('10', 'Grade 10'),
+    ('11', 'Grade 11'),
+    ('12', 'Grade 12'),
+]
 # Create your models here.
 class Section(models.Model):
     adviser = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=20, null=True)
-    grade_level = models.IntegerField(null=True)
-    class_type = models.CharField(max_length=100, choices=Class_Type, default='JHS',null=True)
+    grade_level = models.CharField(max_length=2,choices=GRADE_LEVEL_CHOICES,null=True,blank=True)
+    class_type = models.CharField(max_length=100, choices=CLASS_TYPE_CHOICES, default='JHS',null=True)
     is_adviser = models.BooleanField(default=True) 
     is_subject_teacher = models.BooleanField(default=False)
-    school_name=models.CharField(max_length=100)
-    school_id=models.CharField(max_length=50)
-    principal_name = models.CharField(max_length=100, null=True)
+    school_name=models.CharField(max_length=100, verbose_name="School Name")
+    school_id=models.CharField(max_length=50, verbose_name="School ID")
+    principal_name = models.CharField(max_length=100, null=True, verbose_name="Principal Name", help_text="for SF9 purposes")
+    region = models.CharField(max_length=150)
+    division = models.CharField(max_length=150)
     school_year = models.ForeignKey(schoolYear,on_delete=models.CASCADE, limit_choices_to= {'is_active':True}, default='S.Y. 2026-2027') 
     
 

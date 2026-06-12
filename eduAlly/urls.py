@@ -63,7 +63,9 @@ urlpatterns = [
         template_name="users/password_change_done.html",),
         name="password-change-done",),
     path("email/change/", user_views.change_email, name="email-change"),
-     path("profile/name/change/", user_views.change_name, name="name-change"),
+    path("profile/name/change/", user_views.change_name, name="name-change"),
+    path('getting-started/', user_views.getting_started, name='getting-started'),
+    path('getting-started/done/', user_views.mark_guide_seen, name='mark-guide-seen'),
 ]
 
 if settings.DEBUG:
