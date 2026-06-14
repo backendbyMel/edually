@@ -8,4 +8,6 @@ urlpatterns = [
     path('subject/<int:subject_pk>/activities/<int:pk>/delete/', views.ActivityDeleteView.as_view(), name='activity-delete'),
     path('subject/<int:subject_pk>/activities/<int:activity_pk>/scores/',views.score_input,name='score-input'),
     path('subject/<int:subject_pk>/activities/<int:activity_pk>/scores/view/',views.score_view,name='score-view'),
+    path('subject/<int:subject_pk>/student/<int:enrollment_pk>/scores/', views.student_score_view, name='student-score-view'
+),
 ]

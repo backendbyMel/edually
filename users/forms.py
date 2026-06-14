@@ -13,6 +13,22 @@ class UserRegisterForm(UserCreationForm):
         model = User
         fields=['username','email','first_name','middle_name','last_name','password1','password2']
 
+    def clean_email(self):
+        email = self.cleaned_data["email"]
+
+        if not email:
+            raise forms.ValidationError(
+                'Email is required.'
+            )
+
+        
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError(
+                'This email address is already registered. '
+                'Please use a different email or log in.'
+            )
+
+        return email
 
 class EmailChangeForm(forms.ModelForm):
     class Meta:
@@ -22,8 +38,17 @@ class EmailChangeForm(forms.ModelForm):
     def clean_email(self):
         email = self.cleaned_data["email"]
 
-        if User.objects.filter(email=email).exclude(pk=self.instance.pk).exists():
-            raise forms.ValidationError("This email address is already used.")
+        if not email:
+            raise forms.ValidationError(
+                'Email is required.'
+            )
+
+        
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError(
+                'This email address is already registered. '
+                'Please use a different email or log in.'
+            )
 
         return email
 

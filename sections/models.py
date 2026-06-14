@@ -56,7 +56,7 @@ class Subject(models.Model):
     term = models.ForeignKey(Term, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     subject_type = models.CharField(max_length=20,choices=SUBJECT_TYPE_CHOICES,default='core')
-    order = models.IntegerField()
+    order = models.IntegerField(help_text="Order is for SF9 purposes if you are adviser. If not please put random number.")
     is_handled_by_owner = models.BooleanField(default=False, verbose_name="I am the subject teacher for this",help_text="Check this if you personally teach this subject. \nGrades will be auto-computed from scores you encode. \nLeave unchecked if another teacher handles this subject \nand you will manually input the final grade.")
 
     def __str__(self):

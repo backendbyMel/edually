@@ -194,7 +194,7 @@
                     {% endif %}">
 
                     <td>{{ forloop.counter }}</td>
-                    <td>{{ enrollment.student.lrn }}</td>
+                    <td><a href="{% url 'student-score-view' section.pk subject.pk enrollment.pk %}">{{ enrollment.student.lrn }}</a></td>
                     <td>
                         {{ enrollment.student.last_name }},
                         {{ enrollment.student.first_name }}

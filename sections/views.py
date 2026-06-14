@@ -63,6 +63,15 @@ class SectionDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
                 is_current=True,
             ).first()
         
+        context['male_count'] = Enrollment.objects.filter(
+                section=self.object,
+                student__gender='M'
+            ).count()
+        context['female_count'] = Enrollment.objects.filter(
+                section=self.object,
+                student__gender='F'
+            ).count()
+        
         total_school_days = 0
         if active_term:
             # Get the specific term dates
@@ -92,6 +101,7 @@ class SectionDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
                 date=today,
                 status='A',
             ).count()
+            
         else:
             # Outside term or weekend — suppress the warning entirely
             context['today_recorded'] = True   # prevents warning from showing
@@ -336,7 +346,9 @@ class SectionMasterlistDocxView(LoginRequiredMixin, UserPassesTestMixin, View):
         doc_section.left_margin = Inches(0.4)
         doc_section.right_margin = Inches(0.4)
 
-        logo_path = os.path.join(settings.BASE_DIR, 'static', 'images', 'deped_logo.png')
+        logo_path = os.path.join(settings.BASE_DIR, 'media','deped_logo.png')
+        print(f"Looking for logo at: {logo_path}")
+        print(f"File exists: {os.path.exists(logo_path)}")
 
         if os.path.exists(logo_path):
             logo = document.add_paragraph()

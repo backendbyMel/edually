@@ -8,6 +8,7 @@ from .models import Student
 from bootstrap_datepicker_plus.widgets import DatePickerInput
 from .forms import AddStudentForm
 from django.db.models import Q
+from enrollment.models import Enrollment
 # Create your views here.
 class StudentListView(LoginRequiredMixin, ListView):
     model = Student
@@ -56,6 +57,36 @@ class StudentDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
     model = Student
     template_name = 'students/student_detail.html'
     context_object_name = 'student'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        student = self.object
+
+        enrollments = Enrollment.objects.filter(student=student)
+        context['enrollments'] = enrollments
+        context['total_enrollments'] = enrollments.count()
+
+        # Attendance summary
+        from attendance.models import Attendance
+        attendances = Attendance.objects.filter(
+            enrollment__student=student
+        )
+        total = attendances.count()
+        present = attendances.filter(status='P').count()
+        context['total_present'] = present
+        context['total_absent'] = attendances.filter(status='A').count()
+        context['total_late'] = attendances.filter(status='L').count()
+        context['total_excused'] = attendances.filter(status='E').count()
+        context['attendance_percentage'] = round(
+            present / total * 100, 1
+        ) if total > 0 else None
+        context['is_at_risk'] = (
+            context['attendance_percentage'] < 80
+        ) if context['attendance_percentage'] else False
+
+        
+
+        return context
 
     def test_func(self):
         student = self.get_object()

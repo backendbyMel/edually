@@ -387,3 +387,95 @@ def score_view(request, section_pk, subject_pk, activity_pk):
             'total_scored': total_scored,
         }
     )
+
+@login_required
+def student_score_view(request, section_pk, subject_pk, enrollment_pk):
+    section = get_object_or_404(Section, pk=section_pk)
+    subject = get_object_or_404(Subject, pk=subject_pk)
+    enrollment = get_object_or_404(Enrollment, pk=enrollment_pk)
+
+    # Get active term
+    try:
+        current_term = Term.objects.get(is_current=True)
+    except Term.DoesNotExist:
+        current_term = None
+
+    # Get all graded activities for this subject and term
+    activities = Activity.objects.filter(
+        subject=subject,
+        activity_type='graded',
+        term=current_term
+    ).order_by('component', 'date')
+
+    # Get all scores for this student
+    scores = Score.objects.filter(
+        enrollment=enrollment,
+        activity__subject=subject,
+        activity__term=current_term
+    ).select_related('activity')
+
+    # Build score lookup
+    score_map = {
+        s.activity.pk: s for s in scores
+    }
+
+    # Group activities by component
+    ww_activities = activities.filter(component='WW')
+    pt_activities = activities.filter(component='PT')
+    te_activities = activities.filter(component='TE')
+
+    # Compute percentage per component
+    def component_percentage(act_list):
+        total_possible = sum(
+            a.total_score for a in act_list
+            if a.total_score
+        )
+        total_earned = sum(
+            float(score_map[a.pk].score)
+            for a in act_list
+            if a.pk in score_map
+            and score_map[a.pk].score is not None
+        )
+        if total_possible > 0:
+            return round(
+                (total_earned / total_possible) * 100, 2
+            )
+        return 0
+
+    ww_percentage = component_percentage(ww_activities)
+    pt_percentage = component_percentage(pt_activities)
+    te_percentage = component_percentage(te_activities)
+
+    # Get weights based on subject type
+    from scores.constants import SUBJECT_WEIGHTS
+    weights = SUBJECT_WEIGHTS.get(subject.subject_type, {
+        'WW': 0.20, 'PT': 0.50, 'TE': 0.30
+    })
+
+    # Compute initial grade (before transmutation)
+    initial_grade = (
+        (ww_percentage * weights['WW']) +
+        (pt_percentage * weights['PT']) +
+        (te_percentage * weights['TE'])
+    )
+
+    # Transmute grade
+    from scores.utils import transmute_grade
+    quarterly_grade = transmute_grade(initial_grade)
+
+    return render(request, 'scores/student_score_view.html', {
+        'section': section,
+        'subject': subject,
+        'enrollment': enrollment,
+        'current_term': current_term,
+        'ww_activities': ww_activities,
+        'pt_activities': pt_activities,
+        'te_activities': te_activities,
+        'score_map': score_map,
+        'ww_percentage': ww_percentage,
+        'pt_percentage': pt_percentage,
+        'te_percentage': te_percentage,
+        'weights': weights,
+        'initial_grade': round(initial_grade, 2),
+        'quarterly_grade': quarterly_grade,
+    })

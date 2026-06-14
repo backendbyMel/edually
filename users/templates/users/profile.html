@@ -71,8 +71,14 @@
                             <a href="{% url 'password-change' %}" class="btn btn-primary">
                                 Change password
                             </a>
+                            
                         </div>
+                        
                     </div>
+                    <form method="post" action="{% url 'logout' %}" class="mt-2">
+                            {% csrf_token %}
+                            <button class="btn btn-danger" type="submit">Log out</button>
+                        </form>
                 </div>
             </div>
         </div>

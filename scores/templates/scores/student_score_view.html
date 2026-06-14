@@ -1,0 +1,363 @@
+{% extends 'users/base.html' %}
+{% load scores_filters %}
+{% block content %}
+
+<!-- Header -->
+ {% if quarterly_grade < 75 %}
+<div class="alert alert-danger mt-3">
+    ⚠️ <strong>Intervention Needed!</strong>
+    {{ enrollment.student.first_name }} has a quarterly grade
+    of <strong>{{ quarterly_grade }}</strong> which is below
+    the passing grade of 75. 
+</div>
+{% endif %}
+<div class="d-flex justify-content-between align-items-center mt-3">
+    <div>
+        <h4>
+            {{ enrollment.student.last_name }},
+            {{ enrollment.student.first_name }}
+        </h4>
+        <small class="text-muted">
+            {{ subject.name }} — {{ section.name }} —
+            {{ current_term }}
+        </small>
+    </div>
+</div>
+
+<!-- Grade Summary Cards -->
+<div class="row mt-3 text-center">
+    <div class="col-md-3">
+        <div class="card border-primary">
+            <div class="card-body">
+                <small class="text-muted">WW ({{ weights.WW|floatformat:0 }}%)</small>
+                <h3 class="text-primary">{{ ww_percentage }}%</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-success">
+            <div class="card-body">
+                <small class="text-muted">PT ({{ weights.PT|floatformat:0 }}%)</small>
+                <h3 class="text-success">{{ pt_percentage }}%</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-warning">
+            <div class="card-body">
+                <small class="text-muted">TE ({{ weights.TE|floatformat:0 }}%)</small>
+                <h3 class="text-warning">{{ te_percentage }}%</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card {% if quarterly_grade >= 75 %}border-success{% else %}border-danger{% endif %}">
+            <div class="card-body">
+                <small class="text-muted">Quarterly Grade</small>
+                <h3 class="{% if quarterly_grade >= 75 %}text-success{% else %}text-danger{% endif %}">
+                    {{ quarterly_grade }}
+                </h3>
+                <small>
+                    {% if quarterly_grade >= 75 %}
+                        ✅ Passed
+                    {% else %}
+                        ❌ Failed
+                    {% endif %}
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Written Works -->
+<div class="card mt-3">
+    <div class="card-header fw-bold">
+        📝 Written Works
+        <span class="text-muted fw-normal" style="font-size:0.82rem;">
+            — Weight: {{ weights.WW|floatformat:0 }}% | 
+            Percentage Score: {{ ww_percentage }}%
+        </span>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-striped table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Activity</th>
+                    <th>Date</th>
+                    <th class="text-center">Score</th>
+                    <th class="text-center">Total</th>
+                    <th class="text-center">%</th>
+                    <th>Remarks</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for activity in ww_activities %}
+                {% with s=score_map|get_item:activity.pk %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ activity.title }}</td>
+                    <td>{{ activity.date }}</td>
+                    <td class="text-center">
+                        {% if s and s.score is not None %}
+                            {{ s.score }}
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">{{ activity.total_score }}</td>
+                    <td class="text-center">
+                        {% if s and s.score and activity.total_score %}
+                            {% widthratio s.score activity.total_score 100 %}%
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ s.remarks|default:'—' }}</td>
+                </tr>
+                {% endwith %}
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted">
+                        No Written Works added yet.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            {% if ww_activities %}
+            <tfoot class="table-light fw-bold">
+                <tr>
+                    <td colspan="5" class="text-end">
+                        Percentage Score:
+                    </td>
+                    <td class="text-center text-primary">
+                        {{ ww_percentage }}%
+                    </td>
+                    <td></td>
+                </tr>
+            </tfoot>
+            {% endif %}
+        </table>
+    </div>
+</div>
+
+<!-- Performance Tasks -->
+<div class="card mt-3">
+    <div class="card-header fw-bold">
+        🎯 Performance Tasks
+        <span class="text-muted fw-normal" style="font-size:0.82rem;">
+            — Weight: {{ weights.PT|floatformat:0 }}% | 
+            Percentage Score: {{ pt_percentage }}%
+        </span>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-striped table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Activity</th>
+                    <th>Date</th>
+                    <th class="text-center">Score</th>
+                    <th class="text-center">Total</th>
+                    <th class="text-center">%</th>
+                    <th>Remarks</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for activity in pt_activities %}
+                {% with s=score_map|get_item:activity.pk %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ activity.title }}</td>
+                    <td>{{ activity.date }}</td>
+                    <td class="text-center">
+                        {% if s and s.score is not None %}
+                            {{ s.score }}
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">{{ activity.total_score }}</td>
+                    <td class="text-center">
+                        {% if s and s.score and activity.total_score %}
+                            {% widthratio s.score activity.total_score 100 %}%
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ s.remarks|default:'—' }}</td>
+                </tr>
+                {% endwith %}
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted">
+                        No Performance Tasks added yet.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            {% if pt_activities %}
+            <tfoot class="table-light fw-bold">
+                <tr>
+                    <td colspan="5" class="text-end">
+                        Percentage Score:
+                    </td>
+                    <td class="text-center text-success">
+                        {{ pt_percentage }}%
+                    </td>
+                    <td></td>
+                </tr>
+            </tfoot>
+            {% endif %}
+        </table>
+    </div>
+</div>
+
+<!-- Term Exam -->
+<div class="card mt-3 mb-4">
+    <div class="card-header fw-bold">
+        📋 Term Exam
+        <span class="text-muted fw-normal" style="font-size:0.82rem;">
+            — Weight: {{ weights.TE|floatformat:0 }}% | 
+            Percentage Score: {{ te_percentage }}%
+        </span>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-striped table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Activity</th>
+                    <th>Date</th>
+                    <th class="text-center">Score</th>
+                    <th class="text-center">Total</th>
+                    <th class="text-center">%</th>
+                    <th>Remarks</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for activity in te_activities %}
+                {% with s=score_map|get_item:activity.pk %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ activity.title }}</td>
+                    <td>{{ activity.date }}</td>
+                    <td class="text-center">
+                        {% if s and s.score is not None %}
+                            {{ s.score }}
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">{{ activity.total_score }}</td>
+                    <td class="text-center">
+                        {% if s and s.score and activity.total_score %}
+                            {% widthratio s.score activity.total_score 100 %}%
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ s.remarks|default:'—' }}</td>
+                </tr>
+                {% endwith %}
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted">
+                        No Term Exam added yet.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            {% if te_activities %}
+            <tfoot class="table-light fw-bold">
+                <tr>
+                    <td colspan="5" class="text-end">
+                        Percentage Score:
+                    </td>
+                    <td class="text-center text-warning">
+                        {{ te_percentage }}%
+                    </td>
+                    <td></td>
+                </tr>
+            </tfoot>
+            {% endif %}
+        </table>
+    </div>
+</div>
+
+<!-- Grade Computation Breakdown -->
+<div class="card mt-3 mb-4">
+    <div class="card-header fw-bold">
+        📊 Grade Computation Breakdown
+    </div>
+    <div class="card-body">
+        <table class="table table-bordered text-center mb-3">
+            <thead class="table-light">
+                <tr>
+                    <th>Component</th>
+                    <th>Percentage Score</th>
+                    <th>Weight</th>
+                    <th>Weighted Score</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Written Works</td>
+                    <td>{{ ww_percentage }}%</td>
+                    <td>{{ weights.WW|floatformat:0 }}%</td>
+                    <td>
+                        {{ ww_percentage }} × {{ weights.WW }}
+                        = {{ ww_percentage|floatformat:2 }}
+                    </td>
+                </tr>
+                <tr>
+                    <td>Performance Tasks</td>
+                    <td>{{ pt_percentage }}%</td>
+                    <td>{{ weights.PT|floatformat:0 }}%</td>
+                    <td>
+                        {{ pt_percentage }} × {{ weights.PT }}
+                        = {{ pt_percentage|floatformat:2 }}
+                    </td>
+                </tr>
+                <tr>
+                    <td>Term Exam</td>
+                    <td>{{ te_percentage }}%</td>
+                    <td>{{ weights.TE|floatformat:0 }}%</td>
+                    <td>
+                        {{ te_percentage }} × {{ weights.TE }}
+                        = {{ te_percentage|floatformat:2 }}
+                    </td>
+                </tr>
+                <tr class="table-light fw-bold">
+                    <td colspan="3" class="text-end">
+                        Initial Grade (before transmutation):
+                    </td>
+                    <td>{{ initial_grade }}</td>
+                </tr>
+                <tr class="table-primary fw-bold">
+                    <td colspan="3" class="text-end">
+                        Quarterly Grade (transmuted):
+                    </td>
+                    <td class="fs-5
+                        {% if quarterly_grade >= 75 %}text-success
+                        {% else %}text-danger{% endif %}">
+                        {{ quarterly_grade }}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        {% if quarterly_grade >= 75 %}
+        <div class="alert
+            {% if quarterly_grade >= 75 %}alert-success
+            {% else %}alert-danger{% endif %}
+            mb-0 text-center">
+            
+                ✅ <strong>PASSED</strong> — 
+                {{ enrollment.student.first_name }} meets the passing standard.
+            
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

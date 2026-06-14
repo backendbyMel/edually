@@ -631,3 +631,40 @@ def generate_sf2(request, section_pk: int, month: int, year: int):
     )
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
     return response
+
+@login_required
+def attendance_section_list(request):
+    import datetime
+    today = datetime.date.today()
+
+    sections = Section.objects.filter(
+        adviser=request.user,
+        is_adviser=True
+    )
+
+    # Check which sections have attendance today
+    section_data = []
+    for section in sections:
+        today_recorded = Attendance.objects.filter(
+            enrollment__section=section,
+            date=today
+        ).exists()
+
+        total_students = Enrollment.objects.filter(
+            section=section
+        ).count()
+
+        section_data.append({
+            'section': section,
+            'today_recorded': today_recorded,
+            'total_students': total_students,
+        })
+
+    return render(
+        request,
+        'attendance/attendance_section_list.html',
+        {
+            'section_data': section_data,
+            'today': today,
+        }
+    )

@@ -44,6 +44,7 @@ def dashboard(request):
             # Alert 1: Attendance not recorded today
             today_attendance = Attendance.objects.filter(
                 enrollment__section=section,
+                enrollment__section__is_adviser= True,
                 date=today
             ).exists()
             if not today_attendance:

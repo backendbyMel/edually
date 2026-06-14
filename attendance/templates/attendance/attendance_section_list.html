@@ -1,0 +1,72 @@
+{% extends 'users/base.html' %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mt-3">
+    <div>
+        <h4>📋 Attendance</h4>
+        <small class="text-muted">
+            {{ today|date:"l, F d, Y" }}
+        </small>
+    </div>
+</div>
+
+{% if not section_data %}
+<div class="alert alert-info mt-3">
+    You have no adviser sections yet.
+    <a href="{% url 'section-create' %}">Create one now →</a>
+</div>
+{% else %}
+
+<div class="card mt-3">
+    <div class="card-header fw-bold">
+        My Adviser Sections
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-striped table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Section</th>
+                    <th>Grade Level</th>
+                    <th class="text-center">Students</th>
+                    <th class="text-center">Today</th>
+                    <th class="text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for data in section_data %}
+                <tr class="{% if not data.today_recorded %}table-warning{% endif %}">
+                    <td class="fw-bold">{{ data.section.name }}</td>
+                    <td>Grade {{ data.section.grade_level }}</td>
+                    <td class="text-center">{{ data.total_students }}</td>
+                    <td class="text-center">
+                        {% if data.today_recorded %}
+                            <span class="text-success fw-bold">✅ Done</span>
+                        {% else %}
+                            <span class="text-danger fw-bold">❌ Not yet</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <a href="{% url 'attendance-record' data.section.pk %}"
+                           class="btn btn-sm
+                           {% if data.today_recorded %}btn-secondary
+                           {% else %}btn-primary{% endif %}">
+                            {% if data.today_recorded %}
+                                Edit Attendance
+                            {% else %}
+                                Record Now
+                            {% endif %}
+                        </a>
+                        <a href="{% url 'attendance-summary' data.section.pk %}"
+                           class="btn btn-outline-secondary btn-sm">
+                            History
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endif %}
+{% endblock %}

@@ -6,7 +6,8 @@ from .views import (record_attendance,
                     student_attendance_detail, 
                     student_attendance_edit,
                     delete_attendance_by_date,
-                    generate_sf2)
+                    generate_sf2,
+                    attendance_section_list)
 
 urlpatterns = [
     path('record/', record_attendance, name='attendance-record'),
@@ -17,4 +18,5 @@ urlpatterns = [
     path('student/<int:attendance_pk>/edit',student_attendance_edit, name='attendance-student-edit'),
     path('delete/',delete_attendance_by_date, name='attendance-delete-date'),
     path('sf2/<int:year>/<int:month>/', generate_sf2, name='generate-sf2'),
+    path('sections/', attendance_section_list, name='attendance-sections'),
 ]

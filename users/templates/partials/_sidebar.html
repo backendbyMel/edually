@@ -80,6 +80,29 @@
         </a>
       </li> -->
       <li>
+        <a class="cs-link
+            {% if request.resolver_match.url_name == 'attendance-sections' %}
+                active
+            {% endif %}"
+          href="{% url 'attendance-sections' %}">
+            <!-- attendance icon -->
+            <svg class="cs-icon" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="1.5">
+                <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10
+                        a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+                <rect x="9" y="3" width="6" height="4" rx="1"/>
+                <path d="M9 12l2 2 4-4"/>
+            </svg>
+            <span class="cs-label">
+                Attendance
+                {% if unrecorded_count > 0 %}
+                <span class="cs-badge">{{ unrecorded_count }}</span>
+                {% endif %}
+            </span>
+            <span class="cs-tip">Attendance</span>
+        </a>
+    </li>
+      <li>
         <a class="cs-link" href="{% url 'getting-started' %}">
           <svg class="cs-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M4.5 16.5c-1.5 1.5-2 4.5-2 4.5s3-.5 4.5-2l2-2-2.5-2.5-2 2z"/>

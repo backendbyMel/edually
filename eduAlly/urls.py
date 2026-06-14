@@ -66,6 +66,7 @@ urlpatterns = [
     path("profile/name/change/", user_views.change_name, name="name-change"),
     path('getting-started/', user_views.getting_started, name='getting-started'),
     path('getting-started/done/', user_views.mark_guide_seen, name='mark-guide-seen'),
+    path('attendance',include('attendance.urls')),
 ]
 
 if settings.DEBUG:

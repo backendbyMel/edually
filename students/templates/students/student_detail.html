@@ -1,59 +1,579 @@
-{% extends 'users/base.html' %}  
+{% extends 'users/base.html' %}
 {% block content %}
-  {% if object.added_by == user %}
-<div class="d-flex justify-content-between align-items-center mt-3">
-    <a href="{% url 'student-home' %}" class="btn btn-secondary btn-sm">
-        ← Back
-    </a>
+ 
+{% if object.added_by == user %}
+ 
+<!-- ── HEADER ── -->
+<div class="d-flex justify-content-between align-items-center mt-3 mb-3">
+    <div>
+        <h4 class="fw-bold mb-0">
+            {{ object.last_name }}, {{ object.first_name }}
+            {% if object.middle_name %}
+                {{ object.middle_name|slice:":1" }}.
+            {% endif %}
+        </h4>
+        <small class="text-muted">
+            LRN: {{ object.lrn|default:'Not set' }}
+            &nbsp;·&nbsp;
+            {% if object.gender == 'M' %}
+                <span style="color:#1e40af;">👦 Male</span>
+            {% else %}
+                <span style="color:#9d174d;">👧 Female</span>
+            {% endif %}
+        </small>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'student-update' object.id %}"
+           class="btn btn-outline-primary btn-sm">
+            ✏️ Edit
+        </a>
+        <a href="{% url 'student-delete' object.id %}"
+           class="btn btn-outline-danger btn-sm">
+            🗑 Delete
+        </a>
+        <a href="{% url 'student-home' %}"
+           class="btn btn-secondary btn-sm">
+            ← Back
+        </a>
+    </div>
 </div>
-<div class="card mt-3">
-    <h5 class="card-header">{{ object.complete_name }}</h5>
+ 
+<!-- ── QUICK STATS ── -->
+<div class="row g-3 mb-3">
+    <div class="col-6 col-md-3">
+        <div class="card text-center border-0 shadow-sm h-100">
+            <div class="card-body py-3">
+                <div class="fw-bold"
+                     style="font-size:1.6rem;color:#1a7a4a;">
+                    {{ total_enrollments|default:'0' }}
+                </div>
+                <small class="text-muted">Sections Enrolled</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card text-center border-0 shadow-sm h-100">
+            <div class="card-body py-3">
+                <div class="fw-bold"
+                     style="font-size:1.6rem;color:#1e40af;">
+                    {{ attendance_percentage|default:'—' }}
+                    {% if attendance_percentage %}%{% endif %}
+                </div>
+                <small class="text-muted">Attendance Rate</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card text-center border-0 shadow-sm h-100">
+            <div class="card-body py-3">
+                <div class="fw-bold"
+                     style="font-size:1.6rem;
+                     color:{% if is_at_risk %}#d94040{% else %}#1a7a4a{% endif %};">
+                    {% if is_at_risk %}At-Risk{% else %}Good{% endif %}
+                </div>
+                <small class="text-muted">Attendance Status</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card text-center border-0 shadow-sm h-100">
+            <div class="card-body py-3">
+                <div class="fw-bold"
+                     style="font-size:1.6rem;color:#e8a020;">
+                    {{ total_interventions|default:'0' }}
+                </div>
+                <small class="text-muted">Interventions</small>
+            </div>
+        </div>
+    </div>
 </div>
-<div class="card-body table-responsive">
-    <br>
-    <a type="submit" class="btn btn-primary" href="{% url 'student-update' object.id %}">Edit</a>
-    <a type="submit" class="btn btn-danger" href="{% url 'student-delete' object.id %}">Delete</a>
-    <table class="table table-striped mx-auto">
-        <tbody>
-            <tr>
-                <th><b>Personal Information</b></th>
-                <td><b>Description</b></td>
-            </tr>
-            <tr>
-                <th>LRN</th>
-                <td>{{ object.lrn }}</td>
-            </tr>
-            <tr>
-                <th>First Name</th>
-                <td>{{ object.first_name }}</td>
-            </tr>
-            <tr>
-                <th>Middle Name</th>
-                <td>{{ object.middle_name }}</td>
-            </tr>
-            <tr>
-                <th>Last Name</th>
-                <td>{{ object.last_name }}</td>
-            </tr>
-            <tr>
-                <th>Gender</th>
-                <td>{{ object.get_gender_display }}</td>
-            </tr>
-            <tr>
-                <th>Birthday</th>
-                <td>{{ object.date_of_birth }}</td>
-            </tr>
-            <tr>
-                <th>Age</th>
-                <td>{{ object.age }}</td>
-            </tr>
-            <tr>
-                <th>Birth Certificate Document Status</th>
-                <td>{{ object.get_birth_cert_display }}</td>
-            </tr>
-        </tbody>
-    </table>
-</div>
-</div>
+ 
+<!-- ── TABS ── -->
+<ul class="nav nav-tabs" id="studentTabs">
+    <li class="nav-item">
+        <a class="nav-link active"
+           data-bs-toggle="tab"
+           href="#personalInfo">
+            👤 Personal Info
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link"
+           data-bs-toggle="tab"
+           href="#enrollments">
+            🏫 Enrollments
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link"
+           data-bs-toggle="tab"
+           href="#attendance">
+            📋 Attendance
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link"
+           data-bs-toggle="tab"
+           href="#grades">
+            📊 Grades
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link"
+           data-bs-toggle="tab"
+           href="#interventions">
+            🛡️ Interventions
+        </a>
+    </li>
+</ul>
+ 
+<div class="tab-content mt-3">
+ 
+    <!-- ── TAB 1: PERSONAL INFO ── -->
+    <div class="tab-pane fade show active" id="personalInfo">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="row g-3">
+ 
+                    <!-- Left column -->
+                    <div class="col-md-6">
+                        <h6 class="fw-bold text-muted mb-3"
+                            style="font-size:0.75rem;
+                                   text-transform:uppercase;
+                                   letter-spacing:0.08em;">
+                            Basic Information
+                        </h6>
+                        <table class="table table-sm mb-0">
+                            <tbody>
+                                <tr>
+                                    <th class="text-muted fw-normal"
+                                        style="width:40%;font-size:0.85rem;">
+                                        LRN
+                                    </th>
+                                    <td class="fw-semibold">
+                                        {{ object.lrn|default:'—' }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted fw-normal"
+                                        style="font-size:0.85rem;">
+                                        Last Name
+                                    </th>
+                                    <td>{{ object.last_name|default:'—' }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted fw-normal"
+                                        style="font-size:0.85rem;">
+                                        First Name
+                                    </th>
+                                    <td>{{ object.first_name|default:'—' }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted fw-normal"
+                                        style="font-size:0.85rem;">
+                                        Middle Name
+                                    </th>
+                                    <td>{{ object.middle_name|default:'—' }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted fw-normal"
+                                        style="font-size:0.85rem;">
+                                        Gender
+                                    </th>
+                                    <td>{{ object.get_gender_display|default:'—' }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted fw-normal"
+                                        style="font-size:0.85rem;">
+                                        Date of Birth
+                                    </th>
+                                    <td>{{ object.date_of_birth|default:'—' }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted fw-normal"
+                                        style="font-size:0.85rem;">
+                                        Age
+                                    </th>
+                                    <td>{{ object.age|default:'—' }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+ 
+                    <!-- Right column -->
+                    <div class="col-md-6">
+                        <h6 class="fw-bold text-muted mb-3"
+                            style="font-size:0.75rem;
+                                   text-transform:uppercase;
+                                   letter-spacing:0.08em;">
+                            Additional Information
+                        </h6>
+                        <table class="table table-sm mb-0">
+                            <tbody>
+                                <tr>
+                                    <th class="text-muted fw-normal"
+                                        style="width:45%;font-size:0.85rem;">
+                                        Birth Certificate
+                                    </th>
+                                    <td>
+                                        {{ object.get_birth_cert_display|default:'—' }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted fw-normal"
+                                        style="font-size:0.85rem;">
+                                        Address
+                                    </th>
+                                    <td>{{ object.address|default:'—' }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted fw-normal"
+                                        style="font-size:0.85rem;">
+                                        Guardian Name
+                                    </th>
+                                    <td>{{ object.guardian_name|default:'—' }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted fw-normal"
+                                        style="font-size:0.85rem;">
+                                        Guardian Contact
+                                    </th>
+                                    <td>
+                                        {% if object.guardian_contact %}
+                                            <a href="tel:{{ object.guardian_contact }}"
+                                               class="text-decoration-none">
+                                                {{ object.guardian_contact }}
+                                            </a>
+                                        {% else %}
+                                            —
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+ 
+                </div>
+            </div>
+        </div>
+    </div>
+ 
+    <!-- ── TAB 2: ENROLLMENTS ── -->
+    <div class="tab-pane fade" id="enrollments">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-0">
+                <table class="table table-striped table-hover
+                              align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Section</th>
+                            <th>Grade Level</th>
+                            <th>School Year</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for enrollment in enrollments %}
+                        <tr>
+                            <td class="fw-semibold">
+                                {{ enrollment.section.name }}
+                            </td>
+                            <td>
+                                Grade {{ enrollment.section.grade_level }}
+                            </td>
+                            <td>{{ enrollment.section.school_year }}</td>
+                            <td class="text-center">
+                                <span class="badge
+                                    {% if enrollment.status == 'enrolled' %}
+                                        bg-success
+                                    {% elif enrollment.status == 'dropped' %}
+                                        bg-danger
+                                    {% else %}
+                                        bg-secondary
+                                    {% endif %}">
+                                    {{ enrollment.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <a href="{% url 'section-detail' enrollment.section.pk %}"
+                                   class="btn btn-sm btn-outline-primary">
+                                    View Section
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">
+                                Not enrolled in any section yet.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+ 
+    <!-- ── TAB 3: ATTENDANCE SUMMARY ── -->
+    <div class="tab-pane fade" id="attendance">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+ 
+                {% if attendance_percentage is not None %}
+ 
+                <!-- Attendance rate bar -->
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-1">
+                        <small class="fw-semibold">Overall Attendance Rate</small>
+                        <small class="fw-bold
+                            {% if is_at_risk %}text-danger{% else %}text-success{% endif %}">
+                            {{ attendance_percentage }}%
+                        </small>
+                    </div>
+                    <div class="progress" style="height:10px;border-radius:99px;">
+                        <div class="progress-bar
+                            {% if is_at_risk %}bg-danger{% else %}bg-success{% endif %}"
+                             style="width:{{ attendance_percentage }}%;
+                                    border-radius:99px;">
+                        </div>
+                    </div>
+                    {% if is_at_risk %}
+                    <div class="alert alert-danger mt-2 py-2 mb-0"
+                         style="font-size:0.82rem;">
+                        ⚠️ This student is at-risk.
+                        Attendance is below the 80% threshold.
+                    </div>
+                    {% endif %}
+                </div>
+ 
+                <!-- Attendance breakdown -->
+                <div class="row g-2 text-center mb-3">
+                    <div class="col-3">
+                        <div class="p-2 rounded"
+                             style="background:#e6f5ed;">
+                            <div class="fw-bold"
+                                 style="font-size:1.3rem;color:#1a7a4a;">
+                                {{ total_present|default:'0' }}
+                            </div>
+                            <small class="text-muted">Present</small>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="p-2 rounded"
+                             style="background:#fdeaea;">
+                            <div class="fw-bold"
+                                 style="font-size:1.3rem;color:#d94040;">
+                                {{ total_absent|default:'0' }}
+                            </div>
+                            <small class="text-muted">Absent</small>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="p-2 rounded"
+                             style="background:#fef6e4;">
+                            <div class="fw-bold"
+                                 style="font-size:1.3rem;color:#e8a020;">
+                                {{ total_late|default:'0' }}
+                            </div>
+                            <small class="text-muted">Late</small>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="p-2 rounded"
+                             style="background:#eff6ff;">
+                            <div class="fw-bold"
+                                 style="font-size:1.3rem;color:#1e40af;">
+                                {{ total_excused|default:'0' }}
+                            </div>
+                            <small class="text-muted">Excused</small>
+                        </div>
+                    </div>
+                </div>
+ 
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    <div style="font-size:36px;">📋</div>
+                    <p class="mt-2 mb-0">
+                        No attendance records yet.
+                    </p>
+                </div>
+                {% endif %}
+ 
+            </div>
+        </div>
+    </div>
+ 
+    <!-- ── TAB 4: GRADES ── -->
+    <div class="tab-pane fade" id="grades">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-0">
+                {% if grades %}
+                <table class="table table-striped table-hover
+                              align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Subject</th>
+                            <th>Section</th>
+                            <th>Term</th>
+                            <th class="text-center">Quarterly Grade</th>
+                            <th class="text-center">Source</th>
+                            <th class="text-center">Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for grade in grades %}
+                        <tr class="{% if grade.quarterly_grade and grade.quarterly_grade < 75 %}table-danger{% endif %}">
+                            <td class="fw-semibold">
+                                {{ grade.subject.name }}
+                            </td>
+                            <td>{{ grade.enrollment.section.name }}</td>
+                            <td>{{ grade.term }}</td>
+                            <td class="text-center fw-bold">
+                                {% if grade.quarterly_grade %}
+                                    <span class="
+                                        {% if grade.quarterly_grade >= 75 %}
+                                            text-success
+                                        {% else %}
+                                            text-danger
+                                        {% endif %}">
+                                        {{ grade.quarterly_grade }}
+                                    </span>
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                {% if grade.source == 'computed' %}
+                                    <span class="badge bg-primary">
+                                        Auto
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary">
+                                        Manual
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                {% if grade.quarterly_grade %}
+                                    {% if grade.quarterly_grade >= 75 %}
+                                        <span class="text-success">✅ Passed</span>
+                                    {% else %}
+                                        <span class="text-danger">❌ Failed</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    <div style="font-size:36px;">📊</div>
+                    <p class="mt-2 mb-0">No grades recorded yet.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+ 
+    <!-- ── TAB 5: INTERVENTIONS ── -->
+    <div class="tab-pane fade" id="interventions">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header d-flex justify-content-between
+                        align-items-center bg-white">
+                <span class="fw-semibold">Intervention Records</span>
+                <a href="#" class="btn btn-sm btn-primary">
+                    + Log Intervention
+                </a>
+            </div>
+            <div class="card-body p-0">
+                {% if interventions %}
+                <table class="table table-striped table-hover
+                              align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Date</th>
+                            <th>Reason</th>
+                            <th>Method</th>
+                            <th class="text-center">Parent Contacted</th>
+                            <th>Follow-up</th>
+                            <th>Outcome</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for intervention in interventions %}
+                        <tr>
+                            <td>{{ intervention.date_initiated }}</td>
+                            <td>
+                                <span class="badge
+                                    {% if intervention.reason == 'low_grade' %}
+                                        bg-danger
+                                    {% elif intervention.reason == 'absenteeism' %}
+                                        bg-warning text-dark
+                                    {% else %}
+                                        bg-secondary
+                                    {% endif %}">
+                                    {{ intervention.get_reason_display }}
+                                </span>
+                            </td>
+                            <td>{{ intervention.get_method_display }}</td>
+                            <td class="text-center">
+                                {% if intervention.parent_contacted %}
+                                    <span class="text-success">✅ Yes</span>
+                                {% else %}
+                                    <span class="text-danger">❌ No</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ intervention.followup_date|default:'—' }}</td>
+                            <td style="max-width:200px;
+                                       font-size:0.82rem;">
+                                {{ intervention.outcome|default:'—'|truncatechars:60 }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    <div style="font-size:36px;">🛡️</div>
+                    <p class="mt-2 mb-1">No interventions logged yet.</p>
+                    <small>
+                        Log an intervention when a student needs
+                        extra attention or support.
+                    </small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+ 
+</div><!-- end tab-content -->
+ 
 {% endif %}
+ 
+<!-- ── TAB MEMORY SCRIPT ── -->
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const hash = window.location.hash
+    if (hash) {
+        const tab = document.querySelector(
+            `.nav-link[href="${hash}"]`
+        )
+        if (tab) new bootstrap.Tab(tab).show()
+    }
+ 
+    document.querySelectorAll('.nav-link[data-bs-toggle="tab"]')
+        .forEach(tab => {
+            tab.addEventListener('shown.bs.tab', function(e) {
+                history.replaceState(null, null, e.target.getAttribute('href'))
+            })
+        })
+})
+</script>
+{% endblock %}
+ 
 {% endblock %}
