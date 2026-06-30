@@ -20,6 +20,7 @@ import os
 from django.conf import settings
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
+from django.contrib.auth.decorators import login_required
 # Create your views here.
 class SectionListView(LoginRequiredMixin, ListView):
     model = Section
@@ -459,4 +460,16 @@ class SectionMasterlistDocxView(LoginRequiredMixin, UserPassesTestMixin, View):
 
         document.save(response)
         return response
+
+@login_required
+def bulk_enroll_students(request, section_pk):
+    section = get_object_or_404(Section, pk=section_pk)
+
+    if request.method == 'POST':
+        uploaded_file = request.FILES.get('student_file')
+
+        if not uploaded_file:
+            messages.error(request, 'Please select a file.')
+            return reverse_lazy('section-detail', kwargs={'pk': section.kwargs['pk']})
+
 

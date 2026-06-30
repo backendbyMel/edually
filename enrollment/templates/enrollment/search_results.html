@@ -6,6 +6,23 @@
     <span>Search Results</span>
     <a href="javascript:history.back()" class="btn btn-secondary btn-sm">← Back</a>
   </div>
+<form method="POST"
+              action="{% url 'bulk-enroll-students' section.pk %}"
+              enctype="multipart/form-data"
+              id="bulkEnrollForm">
+            {% csrf_token %}
+            <input type="file"
+                   name="student_file"
+                   id="bulkEnrollFile"
+                   accept=".xlsx,.csv"
+                   style="display:none;"
+                   onchange="this.form.submit()">
+            <button type="button"
+                    class="btn btn-success btn-sm"
+                    onclick="document.getElementById('bulkEnrollFile').click()">
+                ⬆ Bulk Enroll from File
+            </button>
+        </form>
 
   <div class="card-body">
     <!-- Search bar so they can search again without going back -->

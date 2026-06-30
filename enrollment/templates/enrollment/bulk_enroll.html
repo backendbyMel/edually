@@ -1,0 +1,608 @@
+{% extends 'users/base.html' %}
+{% block content %}
+ 
+{% comment %}
+=================================================================
+TEMPLATE: enrollment/templates/enrollment/bulk_enroll.html
+PURPOSE:  Bulk enroll students from Excel/CSV file upload
+URL NAME: bulk-enroll-students
+ACCESS:   Section owner (adviser) only
+=================================================================
+{% endcomment %}
+ 
+<style>
+    .upload-area {
+        border: 2.5px dashed #9fd4b8;
+        border-radius: 16px;
+        background: #f0f9f4;
+        padding: 48px 32px;
+        text-align: center;
+        cursor: pointer;
+        transition: background 0.2s, border-color 0.2s;
+        position: relative;
+    }
+    .upload-area:hover,
+    .upload-area.drag-over {
+        background: #e6f5ed;
+        border-color: #1a7a4a;
+    }
+    .upload-area input[type="file"] {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+        z-index: 2;
+    }
+    .upload-icon { font-size: 52px; margin-bottom: 12px; }
+    .upload-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #1a1f2e;
+        margin-bottom: 6px;
+    }
+    .upload-sub {
+        font-size: 0.82rem;
+        color: #8a97aa;
+    }
+    .file-selected {
+        background: #e6f5ed;
+        border-color: #1a7a4a;
+    }
+    .file-selected .upload-icon::after {
+        content: '✅';
+        display: block;
+        font-size: 40px;
+    }
+    .rule-card {
+        border-radius: 12px;
+        padding: 14px 18px;
+        font-size: 0.85rem;
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        margin-bottom: 10px;
+    }
+    .rule-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .step-badge {
+        width: 28px; height: 28px;
+        border-radius: 50%;
+        background: #1a7a4a;
+        color: white;
+        font-size: 0.78rem;
+        font-weight: 700;
+        display: inline-grid;
+        place-items: center;
+        flex-shrink: 0;
+    }
+    .btn-leaf {
+        background: #1a7a4a;
+        color: white;
+        border: none;
+        font-weight: 700;
+        transition: background 0.15s;
+    }
+    .btn-leaf:hover { background: #155f3a; color: white; }
+    .btn-leaf:disabled {
+        background: #9fd4b8;
+        cursor: not-allowed;
+    }
+</style>
+ 
+<!-- ── BREADCRUMB ── -->
+<nav aria-label="breadcrumb" class="mt-3">
+    <ol class="breadcrumb" style="font-size:0.82rem;">
+        <li class="breadcrumb-item">
+            <a href="{% url 'section-home' %}" class="text-decoration-none">
+                My Sections
+            </a>
+        </li>
+        <li class="breadcrumb-item">
+            <a href="{% url 'section-detail' section.pk %}#enrolledStudents"
+               class="text-decoration-none">
+                {{ section.name }}
+            </a>
+        </li>
+        <li class="breadcrumb-item active">Bulk Enroll Students</li>
+    </ol>
+</nav>
+ 
+<!-- ── PAGE HEADER ── -->
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <h4 class="fw-bold mb-1">⬆ Bulk Enroll Students</h4>
+        <p class="text-muted mb-0" style="font-size:0.88rem;">
+            Upload an Excel or CSV file to enroll multiple students at once
+            into <strong>{{ section.name }}</strong>.
+        </p>
+    </div>
+    <a href="{% url 'section-detail' section.pk %}#enrolledStudents"
+       class="btn btn-secondary btn-sm">
+        ← Back to Section
+    </a>
+</div>
+ 
+<div class="row g-4">
+ 
+    <!-- ── LEFT: UPLOAD FORM ── -->
+    <div class="col-lg-7">
+ 
+        <!-- How it works -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white fw-bold py-3">
+                ℹ️ How It Works
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-column gap-2">
+ 
+                    <div class="d-flex gap-3 align-items-start">
+                        <span class="step-badge">1</span>
+                        <div>
+                            <div class="fw-semibold" style="font-size:0.9rem;">
+                                Download the template
+                            </div>
+                            <div class="text-muted" style="font-size:0.82rem;">
+                                Use the official EduAlly template to avoid column errors.
+                            </div>
+                        </div>
+                    </div>
+ 
+                    <div class="d-flex gap-3 align-items-start">
+                        <span class="step-badge">2</span>
+                        <div>
+                            <div class="fw-semibold" style="font-size:0.9rem;">
+                                Fill in student data
+                            </div>
+                            <div class="text-muted" style="font-size:0.82rem;">
+                                Go to the "Student Data" sheet and fill in
+                                LRN, name, gender, and date of birth.
+                                Delete the sample gray row before saving.
+                            </div>
+                        </div>
+                    </div>
+ 
+                    <div class="d-flex gap-3 align-items-start">
+                        <span class="step-badge">3</span>
+                        <div>
+                            <div class="fw-semibold" style="font-size:0.9rem;">
+                                Upload the file here
+                            </div>
+                            <div class="text-muted" style="font-size:0.82rem;">
+                                Click or drag-and-drop your file below.
+                                The system will create and enroll students automatically.
+                            </div>
+                        </div>
+                    </div>
+ 
+                    <div class="d-flex gap-3 align-items-start">
+                        <span class="step-badge">4</span>
+                        <div>
+                            <div class="fw-semibold" style="font-size:0.9rem;">
+                                Review the result
+                            </div>
+                            <div class="text-muted" style="font-size:0.82rem;">
+                                The system shows a summary of enrolled,
+                                skipped, and error rows.
+                            </div>
+                        </div>
+                    </div>
+ 
+                </div>
+            </div>
+        </div>
+ 
+        <!-- Upload form -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white fw-bold py-3">
+                📁 Upload File
+            </div>
+            <div class="card-body">
+ 
+                <form method="POST"
+                      action="{% url 'bulk-enroll-students' section.pk %}"
+                      enctype="multipart/form-data"
+                      id="bulkEnrollForm">
+                    {% csrf_token %}
+ 
+                    <!-- Drop zone -->
+                    <div class="upload-area mb-3" id="uploadArea">
+                        <input type="file"
+                               name="student_file"
+                               id="studentFile"
+                               accept=".xlsx,.csv"
+                               required>
+                        <div class="upload-icon">📂</div>
+                        <div class="upload-title" id="uploadTitle">
+                            Click to browse or drag & drop your file here
+                        </div>
+                        <div class="upload-sub" id="uploadSub">
+                            Supported formats: .xlsx (Excel) &nbsp;·&nbsp; .csv
+                            &nbsp;·&nbsp; Maximum size: 5 MB
+                        </div>
+                    </div>
+ 
+                    <!-- Selected file display -->
+                    <div id="fileInfo"
+                         class="alert alert-success py-2 mb-3"
+                         style="display:none; font-size:0.85rem;">
+                        <strong>📄 File selected:</strong>
+                        <span id="fileName"></span>
+                        <span class="text-muted ms-2" id="fileSize"></span>
+                    </div>
+ 
+                    <!-- Submit button -->
+                    <div class="d-grid">
+                        <button type="submit"
+                                class="btn btn-leaf py-3 fs-6"
+                                id="submitBtn"
+                                disabled>
+                            ⬆ Enroll Students from File
+                        </button>
+                    </div>
+ 
+                </form>
+ 
+            </div>
+        </div>
+ 
+    </div>
+ 
+    <!-- ── RIGHT: RULES + DOWNLOAD ── -->
+    <div class="col-lg-5">
+ 
+        <!-- Download template card -->
+        <div class="card border-0 shadow-sm mb-4"
+             style="border-left: 4px solid #1a7a4a !important;">
+            <div class="card-body">
+                <div class="fw-bold mb-1" style="color:#1a7a4a;">
+                    ⬇ Download the Official Template
+                </div>
+                <p class="text-muted mb-3" style="font-size:0.82rem;">
+                    Using the official template ensures your column headers
+                    match what the system expects.
+                    The template includes an Instructions sheet
+                    and a sample row as a guide.
+                </p>
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="{% url 'download-student-template' 'xlsx' %}"
+                       class="btn btn-outline-success btn-sm">
+                        📊 Excel Template (.xlsx)
+                    </a>
+                    <a href="{% url 'download-student-template' 'csv' %}"
+                       class="btn btn-outline-secondary btn-sm">
+                        📄 CSV Template (.csv)
+                    </a>
+                </div>
+            </div>
+        </div>
+ 
+        <!-- What the system does -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white fw-bold py-3">
+                ⚙️ What the System Does Per Row
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-sm mb-0"
+                       style="font-size:0.82rem;">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Situation</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                Student LRN not in database
+                                AND not enrolled
+                            </td>
+                            <td class="text-success fw-bold">
+                                ✅ Create + Enroll
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Student LRN already in database
+                                but not enrolled in this section
+                            </td>
+                            <td class="text-primary fw-bold">
+                                📌 Enroll only
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Student already enrolled
+                                in this section
+                            </td>
+                            <td class="text-secondary fw-bold">
+                                ⏭ Skip (no duplicate)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Row has missing required fields
+                            </td>
+                            <td class="text-danger fw-bold">
+                                ❌ Skip with error message
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+ 
+        <!-- Required fields -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white fw-bold py-3">
+                📋 Required Column Headers
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-sm mb-0"
+                       style="font-size:0.82rem;">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Column</th>
+                            <th>Required?</th>
+                            <th>Format / Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="fw-bold">LRN</td>
+                            <td>
+                                <span class="badge bg-danger">
+                                    Required
+                                </span>
+                            </td>
+                            <td>Exactly 12 digits</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold">Last Name</td>
+                            <td>
+                                <span class="badge bg-danger">
+                                    Required
+                                </span>
+                            </td>
+                            <td>Text</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold">First Name</td>
+                            <td>
+                                <span class="badge bg-danger">
+                                    Required
+                                </span>
+                            </td>
+                            <td>Text</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold">Middle Name</td>
+                            <td>
+                                <span class="badge bg-secondary">
+                                    Optional
+                                </span>
+                            </td>
+                            <td>Leave blank if none</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold">Gender</td>
+                            <td>
+                                <span class="badge bg-danger">
+                                    Required
+                                </span>
+                            </td>
+                            <td>M or F only</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold">Date of Birth</td>
+                            <td>
+                                <span class="badge bg-danger">
+                                    Required
+                                </span>
+                            </td>
+                            <td>YYYY-MM-DD</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold">Address</td>
+                            <td>
+                                <span class="badge bg-secondary">
+                                    Optional
+                                </span>
+                            </td>
+                            <td>Home address</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold">Guardian Name</td>
+                            <td>
+                                <span class="badge bg-secondary">
+                                    Optional
+                                </span>
+                            </td>
+                            <td>Parent or guardian</td>
+                        </tr>
+                        <tr>
+                            <td class="fw-bold">Guardian Contact</td>
+                            <td>
+                                <span class="badge bg-secondary">
+                                    Optional
+                                </span>
+                            </td>
+                            <td>Phone number</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+ 
+        <!-- Rules -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white fw-bold py-3">
+                ⚠️ Important Rules
+            </div>
+            <div class="card-body">
+                <div class="rule-card"
+                     style="background:#fdeaea;color:#7f1d1d;">
+                    <span class="rule-icon">🔴</span>
+                    <div>
+                        LRN must be exactly
+                        <strong>12 digits</strong> —
+                        numbers only, no spaces or dashes.
+                    </div>
+                </div>
+                <div class="rule-card"
+                     style="background:#fdeaea;color:#7f1d1d;">
+                    <span class="rule-icon">🔴</span>
+                    <div>
+                        Gender must be
+                        <strong>M</strong> or
+                        <strong>F</strong> only.
+                        Male / Female / male / female are also accepted.
+                    </div>
+                </div>
+                <div class="rule-card"
+                     style="background:#fef6e4;color:#7a5500;">
+                    <span class="rule-icon">🟠</span>
+                    <div>
+                        Date of Birth format:
+                        <strong>YYYY-MM-DD</strong>
+                        (example: 2010-05-23).
+                        MM/DD/YYYY is also accepted.
+                    </div>
+                </div>
+                <div class="rule-card"
+                     style="background:#fef6e4;color:#7a5500;">
+                    <span class="rule-icon">🟠</span>
+                    <div>
+                        Maximum <strong>500 students</strong>
+                        per file. Split into multiple files if needed.
+                    </div>
+                </div>
+                <div class="rule-card"
+                     style="background:#eff6ff;color:#1e3a8a;">
+                    <span class="rule-icon">🔵</span>
+                    <div>
+                        Do <strong>not</strong> rename, delete,
+                        or reorder the column headers in Row 1
+                        of the template.
+                    </div>
+                </div>
+                <div class="rule-card"
+                     style="background:#eff6ff;color:#1e3a8a;">
+                    <span class="rule-icon">🔵</span>
+                    <div>
+                        Delete the gray sample row
+                        (Row 2) before uploading your real data.
+                    </div>
+                </div>
+            </div>
+        </div>
+ 
+    </div>
+</div>
+ 
+<!-- ── JAVASCRIPT ── -->
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+ 
+    const fileInput  = document.getElementById('studentFile');
+    const uploadArea = document.getElementById('uploadArea');
+    const submitBtn  = document.getElementById('submitBtn');
+    const fileInfo   = document.getElementById('fileInfo');
+    const fileName   = document.getElementById('fileName');
+    const fileSize   = document.getElementById('fileSize');
+    const uploadTitle = document.getElementById('uploadTitle');
+    const uploadSub   = document.getElementById('uploadSub');
+    const form        = document.getElementById('bulkEnrollForm');
+ 
+    // ── File selected via click ──
+    fileInput.addEventListener('change', function () {
+        handleFile(this.files[0]);
+    });
+ 
+    // ── Drag and drop ──
+    uploadArea.addEventListener('dragover', function (e) {
+        e.preventDefault();
+        uploadArea.classList.add('drag-over');
+    });
+ 
+    uploadArea.addEventListener('dragleave', function () {
+        uploadArea.classList.remove('drag-over');
+    });
+ 
+    uploadArea.addEventListener('drop', function (e) {
+        e.preventDefault();
+        uploadArea.classList.remove('drag-over');
+        const file = e.dataTransfer.files[0];
+        if (file) {
+            // Manually set the file on the input
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            fileInput.files = dt.files;
+            handleFile(file);
+        }
+    });
+ 
+    function handleFile(file) {
+        if (!file) return;
+ 
+        const name = file.name.toLowerCase();
+        const validExt = name.endsWith('.xlsx') || name.endsWith('.csv');
+ 
+        if (!validExt) {
+            showError('❌ Invalid file type. Please upload an .xlsx or .csv file.');
+            return;
+        }
+ 
+        const maxSize = 5 * 1024 * 1024; // 5 MB
+        if (file.size > maxSize) {
+            showError('❌ File is too large. Maximum size is 5 MB.');
+            return;
+        }
+ 
+        // Show file info
+        fileInfo.style.display = 'block';
+        fileName.textContent = file.name;
+        fileSize.textContent = '(' + formatBytes(file.size) + ')';
+ 
+        // Update upload area appearance
+        uploadArea.classList.add('file-selected');
+        uploadTitle.textContent = '✅ File ready to upload';
+        uploadSub.textContent = file.name;
+ 
+        // Enable submit button
+        submitBtn.disabled = false;
+        submitBtn.textContent = '⬆ Enroll Students from File';
+    }
+ 
+    function showError(msg) {
+        fileInfo.style.display = 'block';
+        fileInfo.className = 'alert alert-danger py-2 mb-3';
+        fileInfo.innerHTML = msg;
+        submitBtn.disabled = true;
+        uploadArea.classList.remove('file-selected');
+        uploadTitle.textContent = 'Click to browse or drag & drop your file here';
+        uploadSub.textContent = 'Supported formats: .xlsx (Excel) · .csv · Maximum size: 5 MB';
+    }
+ 
+    function formatBytes(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+    }
+ 
+    // ── Show loading state on submit ──
+    form.addEventListener('submit', function () {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `
+            <span class="spinner-border spinner-border-sm me-2"
+                  role="status" aria-hidden="true"></span>
+            Processing... Please wait
+        `;
+    });
+ 
+});
+</script>
+{% endblock %}
+ 
+{% endblock %}

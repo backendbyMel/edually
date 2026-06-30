@@ -22,7 +22,7 @@ def register(request):
             messages.success(request, f'Account created for {username}!')
             return redirect('login')
     else:
-        form = UserRegisterForm
+        form = UserRegisterForm()
     return render(request, 'users/register.html', {'form':form})
 
 @login_required
@@ -42,9 +42,9 @@ def dashboard(request):
         for section in sections:
 
             # Alert 1: Attendance not recorded today
+            
             today_attendance = Attendance.objects.filter(
                 enrollment__section=section,
-                enrollment__section__is_adviser= True,
                 date=today
             ).exists()
             if not today_attendance:

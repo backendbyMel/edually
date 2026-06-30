@@ -4,6 +4,10 @@
 {% if object.added_by == user %}
  
 <!-- ── HEADER ── -->
+ <a href="{% url 'download-student-template' %}"
+   class="btn btn-outline-secondary btn-sm">
+    ⬇ Download Template
+</a>
 <div class="d-flex justify-content-between align-items-center mt-3 mb-3">
     <div>
         <h4 class="fw-bold mb-0">

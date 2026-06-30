@@ -488,6 +488,27 @@
                     class="btn btn-primary btn-sm">
                         + Enroll Student
                     </a>
+                    <form method="POST"
+              action="{% url 'bulk-enroll-students' section.pk %}"
+              enctype="multipart/form-data"
+              id="bulkEnrollForm">
+            {% csrf_token %}
+            <input type="file"
+                   name="student_file"
+                   id="bulkEnrollFile"
+                   accept=".xlsx,.csv"
+                   style="display:none;"
+                   onchange="this.form.submit()">
+            <button type="button"
+                    class="btn btn-success btn-sm"
+                    onclick="document.getElementById('bulkEnrollFile').click()">
+                ⬆ Bulk Enroll from File
+            </button>
+        </form>
+        <a href="{% url 'download-student-template' 'xlsx' %}"
+            class="btn btn-outline-secondary btn-sm">
+                ⬇ Download Bulk Enroll Template
+            </a>
                     {% if object.is_adviser %}
                     <a href="{% url 'section-masterlist-docx' section.pk %}"
                     class="btn btn-outline-success btn-sm">

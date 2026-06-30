@@ -2,6 +2,7 @@
 {% load static %}
 
 {% block content %}
+{% if not user.is_authenticated %}
 <style>
     /* ── BRAND TOKENS ── */
     :root {
@@ -318,7 +319,7 @@
             <a href="#how" class="text-decoration-none text-secondary fw-500 px-3 py-2 rounded-3">How it works</a>
             <a href="#pricing" class="text-decoration-none text-secondary fw-500 px-3 py-2 rounded-3">Pricing</a>
             <a href="{% url 'login' %}" class="text-decoration-none text-secondary fw-500 px-3 py-2 rounded-3">Log in</a>
-            <a href="https://www.facebook.com/profile.php?id=61584252110866" target="_blank" class="btn btn-leaf px-4 py-2 rounded-3">Get Started Free</a>
+            <a href="#" target="_blank" class="btn btn-leaf px-4 py-2 rounded-3">Get Started Free</a>
         </div>
         <!-- Mobile toggle -->
         <button class="btn d-md-none" type="button" data-bs-toggle="collapse" data-bs-target="#mobileNav">
@@ -329,9 +330,9 @@
         <div class="d-flex flex-column gap-1 pt-3 pb-2">
             <a href="#features" class="text-decoration-none text-secondary py-2">Features</a>
             <a href="#how" class="text-decoration-none text-secondary py-2">How it works</a>
-            <a href="#pricing" class="text-decoration-none text-secondary py-2">Pricing</a>
+            <!-- <a href="#pricing" class="text-decoration-none text-secondary py-2">Pricing</a> -->
             <a href="{% url 'login' %}" class="text-decoration-none text-secondary py-2">Log in</a>
-            <a href="https://www.facebook.com/profile.php?id=61584252110866" target="_blank" class="btn btn-leaf py-2 mt-1">Get Started Free</a>
+            <a href="#" target="_blank" class="btn btn-leaf py-2 mt-1">Get Started Free</a>
         </div>
     </div>
 </nav>
@@ -643,7 +644,7 @@
                         <li class="d-flex gap-2 text-secondary"><span class="pricing-cross">✗</span> Intervention tracker</li>
                         <li class="d-flex gap-2 text-secondary"><span class="pricing-cross">✗</span> Analytics</li>
                     </ul>
-                    <a href="https://www.facebook.com/profile.php?id=61584252110866" target="_blank"  class="btn btn-outline-ink w-100 py-3 rounded-3">
+                    <a href="#" target="_blank"  class="btn btn-outline-ink w-100 py-3 rounded-3">
                         Get started free
                     </a>
                 </div>
@@ -676,9 +677,9 @@
                         <li class="d-flex gap-2"><span class="pricing-check">✓</span> Class analytics & reports</li>
                         <li class="d-flex gap-2"><span class="pricing-check">✓</span> Priority support</li>
                     </ul>
-                    <a href="https://www.facebook.com/profile.php?id=61584252110866" target="_blank"  class="btn btn-leaf w-100 py-3 rounded-3 fs-6">
+                    <!-- <a href="https://www.facebook.com/profile.php?id=61584252110866" target="_blank"  class="btn btn-leaf w-100 py-3 rounded-3 fs-6">
                         🚀 Claim Your Free Year
-                    </a>
+                    </a> -->
                 </div>
             </div>
  
@@ -792,4 +793,5 @@
         </div>
     </div>
 </footer>
+{% endif %}
 {% endblock %}
